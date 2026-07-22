@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <base target="_top">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <style>
+    :root {
+      --blue: #0f5ba7;
+      --blue-dark: #0a467f;
+      --blue-soft: #eaf3fb;
+      --green: #2f7d32;
+      --green-soft: #edf7ee;
+      --text: #17212b;
+      --muted: #697783;
+      --line: #dce5ec;
+      --background: #f3f6f8;
+      --white: #ffffff;
+      --danger: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    .container {
+      width: min(100% - 24px, 920px);
+      margin: 0 auto;
+      padding: 20px 0 40px;
+    }
+
+    .hero,
+    .card,
+    .results {
+      border-radius: 18px;
+      background: var(--white);
+      box-shadow: 0 18px 46px rgba(19, 70, 105, 0.12);
+    }
+
+    .hero {
+      padding: 34px;
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue),
+          var(--blue-dark)
+        );
+      color: var(--white);
+    }
+
+    .brand {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 6vw, 44px);
+      line-height: 1.08;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 20px 0 0;
+      color: rgba(255,255,255,0.86);
+      font-size: 17px;
+    }
+
+    .card,
+    .results {
+      margin-top: 20px;
+      padding: 30px;
+    }
+
+    h2 {
+      margin: 0 0 24px;
+      color: var(--blue);
+    }
+
+    h3 {
+      margin: 0 0 12px;
+      color: var(--blue);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--white);
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow:
+        0 0 0 4px rgba(15,91,167,0.12);
+    }
+
+    select:disabled {
+      background: #f0f3f5;
+    }
+
+    .privacy {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border: 1px solid #cae3cc;
+      border-radius: 12px;
+      background: var(--green-soft);
+      color: #245f28;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    button {
+      min-height: 50px;
+      padding: 12px 22px;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .primary {
+      flex: 1;
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    .primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: var(--white);
+      color: var(--blue);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .error {
+      margin-bottom: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #fef3f2;
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .metric.featured {
+      background: var(--blue-soft);
+      border-color: rgba(15,91,167,0.28);
+    }
+
+    .metric span {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      color: var(--blue);
+      font-size: 25px;
+    }
+
+    .status,
+    .panel {
+      margin-top: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .status {
+      background: #f8fafb;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .products {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .product {
+      padding: 16px;
+      border: 1px solid rgba(15,91,167,0.18);
+      border-radius: 12px;
+      background: #f8fbfe;
+    }
+
+    .product strong {
+      color: var(--blue);
+    }
+
+    .product p {
+      margin: 7px 0 0;
+      color: var(--muted);
+    }
+
+    .soil-active {
+      margin-top: 18px;
+      padding: 16px;
+      border-left: 4px solid var(--green);
+      border-radius: 8px;
+      background: var(--green-soft);
+    }
+
+    .soil-active p {
+      margin: 6px 0 0;
+    }
+
+    .disclaimer {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        width: min(100% - 16px, 920px);
+        padding-top: 8px;
+      }
+
+      .hero,
+      .card,
+      .results {
+        border-radius: 15px;
+      }
+
+      .hero,
+      .card,
+      .results {
+        padding: 22px;
+      }
+
+      .grid,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <section class="hero">
+      <p class="brand">Bactogran Digital</p>
+
+      <h1>
+        Калькулятор фосфорного живлення
+      </h1>
+
+      <p>
+        Визначте потребу культури у фосфорі та
+        отримайте рекомендовані рішення Bactogran
+        відповідно до параметрів поля.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Параметри поля</h2>
+
+      <div
+        id="error"
+        class="error"
+        role="alert"
+        hidden
+      ></div>
+
+      <form id="calculatorForm">
+        <div class="grid">
+
+          <label>
+            Площа поля, га
+
+            <input
+              id="area"
+              type="text"
+              inputmode="decimal"
+              placeholder="Наприклад, 250"
+              required
+            >
+          </label>
+
+          <label>
+            Культура
+
+            <select id="crop" required>
+              <option value="">
+                Завантаження…
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Запланована врожайність, т/га
+
+            <select
+              id="plannedYield"
+              disabled
+              required
+            >
+              <option value="">
+                Спочатку оберіть культуру
+              </option>
+            </select>
+          </label>
+
+          <label>
+            Забезпеченість ґрунту фосфором
+
+            <select id="soilP" required>
+              <option value="">
+                Завантаження…
+              </option>
+            </select>
+          </label>
+
+          <label>
+            pH ґрунту
+
+            <select id="pH" required>
+              <option value="">
+                Завантаження…
+              </option>
+            </select>
+          </label>
+
+        </div>
+
+        <div
+          id="privacyText"
+          class="privacy"
+        >
+          Калькулятор не збирає персональних даних.
+        </div>
+
+        <div class="actions">
+          <button
+            id="calculateButton"
+            class="primary"
+            type="submit"
+          >
+            Розрахувати
+          </button>
+
+          <button
+            id="clearButton"
+            class="secondary"
+            type="button"
+          >
+            Очистити
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section
+      id="results"
+      class="results"
+      hidden
+    >
+      <h2>Результат розрахунку</h2>
+
+      <div class="metrics">
+
+        <article class="metric">
+          <span>Винос P₂O₅ із урожаєм</span>
+          <strong id="removal">—</strong>
+        </article>
+
+        <article class="metric featured">
+          <span>Рекомендована норма P₂O₅</span>
+          <strong id="recommendation">—</strong>
+        </article>
+
+        <article class="metric">
+          <span>Загальна потреба P₂O₅</span>
+          <strong id="total">—</strong>
+        </article>
+
+      </div>
+
+      <div
+        id="status"
+        class="status"
+      ></div>
+
+      <article class="panel">
+        <h3 id="explanationTitle">
+          Доступні рішення Bactogran
+        </h3>
+
+        <p id="explanationIntro"></p>
+
+        <div
+          id="products"
+          class="products"
+        ></div>
+
+        <p
+          id="productsFallback"
+          hidden
+        ></p>
+
+        <div class="soil-active">
+          <strong>
+            Біокомплекс Soil Active
+          </strong>
+
+          <p id="soilActive"></p>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h3>Агрономічний висновок</h3>
+        <p id="comment"></p>
+      </article>
+
+      <p
+        id="disclaimer"
+        class="disclaimer"
+      ></p>
+    </section>
+
+  </main>
+
+  <script>
+    const SESSION_TOKEN =
+      <?!= JSON.stringify(sessionToken) ?>;
+
+    const APP_VERSION =
+      <?!= JSON.stringify(appVersion) ?>;
+
+    let appData = null;
+
+    const form =
+      document.getElementById('calculatorForm');
+
+    const area =
+      document.getElementById('area');
+
+    const crop =
+      document.getElementById('crop');
+
+    const plannedYield =
+      document.getElementById('plannedYield');
+
+    const soilP =
+      document.getElementById('soilP');
+
+    const pH =
+      document.getElementById('pH');
+
+    const calculateButton =
+      document.getElementById('calculateButton');
+
+    const clearButton =
+      document.getElementById('clearButton');
+
+    const errorBox =
+      document.getElementById('error');
+
+    const results =
+      document.getElementById('results');
+
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      loadApp
+    );
+
+
+    function loadApp() {
+      setLoading(true, 'Завантаження…');
+
+      google.script.run
+        .withSuccessHandler(setupApp)
+        .withFailureHandler(showServerError)
+        .getAppData(SESSION_TOKEN);
+    }
+
+
+    function setupApp(data) {
+      appData = data;
+
+      fillSelect(
+        crop,
+        data.crops,
+        'Оберіть культуру'
+      );
+
+      fillSelect(
+        soilP,
+        data.soilOptions,
+        'Оберіть показник'
+      );
+
+      fillSelect(
+        pH,
+        data.phOptions,
+        'Оберіть pH'
+      );
+
+      document
+        .getElementById('privacyText')
+        .textContent = data.privacyText;
+
+      document
+        .getElementById('disclaimer')
+        .textContent = data.disclaimer;
+
+      setLoading(false);
+    }
+
+
+    crop.addEventListener(
+      'change',
+      function () {
+        const options =
+          appData.yieldMap[crop.value] || [];
+
+        plannedYield.replaceChildren();
+
+        const placeholder =
+          document.createElement('option');
+
+        placeholder.value = '';
+
+        placeholder.textContent =
+          crop.value
+            ? 'Оберіть урожайність'
+            : 'Спочатку оберіть культуру';
+
+        plannedYield.appendChild(placeholder);
+
+        options.forEach(value => {
+          const option =
+            document.createElement('option');
+
+          option.value = value;
+          option.textContent =
+            formatNumber(value);
+
+          plannedYield.appendChild(option);
+        });
+
+        plannedYield.disabled =
+          !crop.value || !options.length;
+      }
+    );
+
+
+    form.addEventListener(
+      'submit',
+      function (event) {
+        event.preventDefault();
+        hideError();
+
+        const input = {
+          area: area.value,
+          crop: crop.value,
+          plannedYield: plannedYield.value,
+          soilP: soilP.value,
+          pH: pH.value
+        };
+
+        setLoading(true, 'Розрахунок…');
+
+        google.script.run
+          .withSuccessHandler(showResult)
+          .withFailureHandler(showServerError)
+          .calculateWeb(
+            input,
+            SESSION_TOKEN
+          );
+      }
+    );
+
+
+    clearButton.addEventListener(
+      'click',
+      clearForm
+    );
+
+
+    function showResult(result) {
+      document
+        .getElementById('removal')
+        .textContent = result.removalLabel;
+
+      document
+        .getElementById('recommendation')
+        .textContent =
+          result.recommendationLabel;
+
+      document
+        .getElementById('total')
+        .textContent = result.totalP2O5Label;
+
+      document
+        .getElementById('status')
+        .textContent = result.status;
+
+      document
+        .getElementById('explanationTitle')
+        .textContent =
+          result.explanation.title;
+
+      document
+        .getElementById('explanationIntro')
+        .textContent =
+          result.explanation.intro;
+
+      document
+        .getElementById('soilActive')
+        .textContent =
+          result.explanation.soilActive;
+
+      document
+        .getElementById('comment')
+        .textContent = result.comment;
+
+      renderProducts(
+        result.products,
+        result.explanation.fallback
+      );
+
+      results.hidden = false;
+
+      setLoading(false);
+      hideError();
+
+      results.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+
+    function renderProducts(
+      products,
+      fallback
+    ) {
+      const container =
+        document.getElementById('products');
+
+      const fallbackElement =
+        document.getElementById(
+          'productsFallback'
+        );
+
+      container.replaceChildren();
+
+      if (!products.length) {
+        fallbackElement.textContent = fallback;
+        fallbackElement.hidden = false;
+        return;
+      }
+
+      fallbackElement.hidden = true;
+
+      products.forEach(product => {
+        const card =
+          document.createElement('article');
+
+        card.className = 'product';
+
+        const title =
+          document.createElement('strong');
+
+        title.textContent = product.name;
+
+        const rate =
+          document.createElement('p');
+
+        rate.textContent =
+          `${product.rateLabel} · ` +
+          `${product.totalLabel}`;
+
+        card.append(title, rate);
+        container.appendChild(card);
+      });
+    }
+
+
+    function fillSelect(
+      select,
+      values,
+      placeholderText
+    ) {
+      select.replaceChildren();
+
+      const placeholder =
+        document.createElement('option');
+
+      placeholder.value = '';
+      placeholder.textContent =
+        placeholderText;
+
+      select.appendChild(placeholder);
+
+      values.forEach(value => {
+        const option =
+          document.createElement('option');
+
+        option.value = value;
+        option.textContent = value;
+
+        select.appendChild(option);
+      });
+    }
+
+
+    function clearForm() {
+      form.reset();
+
+      plannedYield.replaceChildren();
+
+      const option =
+        document.createElement('option');
+
+      option.value = '';
+      option.textContent =
+        'Спочатку оберіть культуру';
+
+      plannedYield.appendChild(option);
+      plannedYield.disabled = true;
+
+      results.hidden = true;
+      hideError();
+
+      area.focus();
+    }
+
+
+    function setLoading(
+      loading,
+      text
+    ) {
+      calculateButton.disabled = loading;
+      clearButton.disabled = loading;
+
+      calculateButton.textContent =
+        loading
+          ? text
+          : 'Розрахувати';
+    }
+
+
+    function showServerError(error) {
+      setLoading(false);
+
+      errorBox.textContent =
+        error && error.message
+          ? error.message
+          : 'Виникла помилка. Повторіть спробу.';
+
+      errorBox.hidden = false;
+
+      errorBox.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+
+
+    function hideError() {
+      errorBox.hidden = true;
+      errorBox.textContent = '';
+    }
+
+
+    function formatNumber(value) {
+      const number = Number(value);
+
+      if (!Number.isFinite(number)) {
+        return value;
+      }
+
+      return Number.isInteger(number)
+        ? String(number)
+        : number.toFixed(1).replace('.', ',');
+    }
+  </script>
+</body>
+</html>
