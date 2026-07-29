@@ -504,11 +504,7 @@
   </main>
 
   <script>
-    const SESSION_TOKEN =
-      <?!= JSON.stringify(sessionToken) ?>;
-
-    const APP_VERSION =
-      <?!= JSON.stringify(appVersion) ?>;
+    // ВИДАЛЕНО: змінні SESSION_TOKEN та APP_VERSION, які викликали синтаксичну помилку в звичайному браузері
 
     let appData = null;
 
@@ -552,10 +548,25 @@
     function loadApp() {
       setLoading(true, 'Завантаження…');
 
-      google.script.run
-        .withSuccessHandler(setupApp)
-        .withFailureHandler(showServerError)
-        .getAppData(SESSION_TOKEN);
+      // Локальні дані для тестування інтерфейсу
+      const mockData = {
+        crops: ['Пшениця', 'Ріпак', 'Кукурудза', 'Соняшник', 'Соя'],
+        soilOptions: ['Низька', 'Середня', 'Висока'],
+        phOptions: ['5.0', '6.0', '7.0', '8.0'],
+        yieldMap: {
+          'Пшениця': [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
+          'Ріпак': [2, 2.5, 3, 3.5, 4, 4.5, 5],
+          'Кукурудза': [6, 7, 8, 9, 10, 11, 12, 13, 14],
+          'Соняшник': [2, 2.5, 3, 3.5, 4],
+          'Соя': [2, 2.5, 3, 3.5, 4]
+        },
+        privacyText: 'Калькулятор не збирає персональних даних.',
+        disclaimer: '* Рекомендована норма розрахована на основі середніх показників.'
+      };
+
+      setTimeout(() => {
+        setupApp(mockData);
+      }, 300);
     }
 
 
@@ -645,13 +656,36 @@
 
         setLoading(true, 'Розрахунок…');
 
-        google.script.run
-          .withSuccessHandler(showResult)
-          .withFailureHandler(showServerError)
-          .calculateWeb(
-            input,
-            SESSION_TOKEN
-          );
+        // Імітуємо затримку розрахунку на сервері та виводимо тестовий результат
+        setTimeout(() => {
+          const mockResult = {
+            removalLabel: "38 кг/га",
+            recommendationLabel: "50 кг/га",
+            totalP2O5Label: `${(50 * input.area / 1000).toFixed(1)} т на всю площу`,
+            status: "Підвищена потреба у фосфорному живленні",
+            comment: "За обраних параметрів ризик дефіциту фосфору є помірним. Рекомендована норма спрямована на підтримання балансу живлення та стабільне формування врожаю.",
+            explanation: {
+              title: "Доступні рішення Bactogran для забезпечення потреби культури у фосфорі",
+              intro: `Для досягнення запланованої врожайності ${input.crop.toLowerCase()} ${input.plannedYield} т/га можна обрати один із наведених продуктів Bactogran:`,
+              fallback: "Потрібна консультація агронома Bactogran для уточнення системи живлення.",
+              soilActive: "Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих та лужних ґрунтах. Це сприяє кращому розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю."
+            },
+            products: [
+              {
+                name: "Bactogran NPK 5.16.7 із біокомплексом Soil Active",
+                rateLabel: "130 кг/га",
+                totalLabel: `${(130 * input.area / 1000).toFixed(1)} т на площу ${input.area} га`
+              },
+              {
+                name: "Bactogran NP 4.28 із біокомплексом Soil Active",
+                rateLabel: "100 кг/га",
+                totalLabel: `${(100 * input.area / 1000).toFixed(1)} т на площу ${input.area} га`
+              }
+            ]
+          };
+
+          showResult(mockResult);
+        }, 500);
       }
     );
 
