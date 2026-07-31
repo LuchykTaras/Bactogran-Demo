@@ -508,8 +508,16 @@
 
     let appData = null;
 
-    const form =
-      document.getElementById('calculatorForm');
+const params =
+  new URLSearchParams(window.location.search);
+
+const token =
+  params.get('token');
+
+const API_URL = '/api/calculate';
+
+const form =
+  document.getElementById('calculatorForm');
 
     const area =
       document.getElementById('area');
@@ -641,51 +649,102 @@
 
 
     form.addEventListener(
-      'submit',
-      function (event) {
-        event.preventDefault();
-        hideError();
+  'submit',
+  async function (event) {
+    event.preventDefault();
+    hideError();
 
-        const input = {
-          area: area.value,
-          crop: crop.value,
-          plannedYield: plannedYield.value,
-          soilP: soilP.value,
-          pH: pH.value
-        };
+    if (!token) {
+      showServerError({
+        message:
+          'Персональне посилання не містить токена.'
+      });
+
+      return;
+    }
+
+    const input = {
+  token: token,
+  area: area.value,
+  crop: crop.value,
+  plannedYield: plannedYield.value,
+  soilP: soilP.value,
+  pH: pH.value
+};
 
         setLoading(true, 'Розрахунок…');
 
-        // Імітуємо затримку розрахунку на сервері та виводимо тестовий результат
-        setTimeout(() => {
-          const mockResult = {
-            removalLabel: "38 кг/га",
-            recommendationLabel: "50 кг/га",
-            totalP2O5Label: `${(50 * input.area / 1000).toFixed(1)} т на всю площу`,
-            status: "Підвищена потреба у фосфорному живленні",
-            comment: "За обраних параметрів ризик дефіциту фосфору є помірним. Рекомендована норма спрямована на підтримання балансу живлення та стабільне формування врожаю.",
-            explanation: {
-              title: "Доступні рішення Bactogran для забезпечення потреби культури у фосфорі",
-              intro: `Для досягнення запланованої врожайності ${input.crop.toLowerCase()} ${input.plannedYield} т/га можна обрати один із наведених продуктів Bactogran:`,
-              fallback: "Потрібна консультація агронома Bactogran для уточнення системи живлення.",
-              soilActive: "Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих та лужних ґрунтах. Це сприяє кращому розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю."
-            },
-            products: [
-              {
-                name: "Bactogran NPK 5.16.7 із біокомплексом Soil Active",
-                rateLabel: "130 кг/га",
-                totalLabel: `${(130 * input.area / 1000).toFixed(1)} т на площу ${input.area} га`
-              },
-              {
-                name: "Bactogran NP 4.28 із біокомплексом Soil Active",
-                rateLabel: "100 кг/га",
-                totalLabel: `${(100 * input.area / 1000).toFixed(1)} т на площу ${input.area} га`
-              }
-            ]
-          };
+        try {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(input)
+  });
 
-          showResult(mockResult);
-        }, 500);
+  const result = await response.json();
+
+  if (!response.ok || result.status !== 'success') {
+    throw new Error(
+      result.message ||
+      'Не вдалося виконати розрахунок.'
+    );
+  }
+
+  const data = result.data;
+
+  const formattedResult = {
+    removalLabel: data.removalLabel,
+
+    recommendationLabel:
+      data.recommendationLabel,
+
+    totalP2O5Label:
+      data.totalP2O5Label,
+
+    status:
+      data.statusText,
+
+    comment:
+      data.comment,
+
+    explanation: {
+      title:
+        'Доступні рішення Bactogran для забезпечення потреби культури у фосфорі',
+
+      intro:
+        `Для досягнення запланованої врожайності ` +
+        `${input.crop.toLowerCase()} ` +
+        `${input.plannedYield} т/га можна обрати ` +
+        `один із наведених продуктів Bactogran:`,
+
+      fallback:
+        'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
+
+      soilActive:
+        'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах.'
+    },
+
+    products: (data.products || []).map(product => ({
+      name: product.name,
+
+      rateLabel:
+        product.rateLabel ||
+        `${formatNumber(product.rate)} кг/га`,
+
+      totalLabel:
+        product.totalLabel ||
+        `${formatNumber(product.totalTons)} т на площу ` +
+        `${formatNumber(input.area)} га`
+    }))
+  };
+
+  showResult(formattedResult);
+
+} catch (error) {
+  showServerError(error);
+}
       }
     );
 
