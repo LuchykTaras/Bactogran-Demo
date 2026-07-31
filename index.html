@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <base target="_top">
-
+<title>Bactogran Field Advisor — Цифровий помічник</title>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
@@ -57,15 +57,20 @@
     }
 
     .hero {
-      padding: 34px;
-      background:
-        linear-gradient(
-          135deg,
-          var(--blue),
-          var(--blue-dark)
-        );
-      color: var(--white);
-    }
+  padding: 0;
+  overflow: hidden;
+  background: var(--white);
+  color: inherit;
+  line-height: 0;
+}
+
+.hero-banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border: 0;
+}
 
     .brand {
       margin: 0 0 8px;
@@ -296,11 +301,19 @@
         border-radius: 15px;
       }
 
-      .hero,
-      .card,
-      .results {
-        padding: 22px;
-      }
+      .hero {
+  padding: 0;
+}
+
+.card,
+.results {
+  padding: 22px;
+}
+
+.hero-banner {
+  width: 100%;
+  height: auto;
+}
 
       .grid,
       .metrics {
@@ -321,19 +334,17 @@
 <body>
   <main class="container">
 
-    <section class="hero">
-      <p class="brand">Bactogran Digital</p>
-
-      <h1>
-        Калькулятор фосфорного живлення
-      </h1>
-
-      <p>
-        Визначте потребу культури у фосфорі та
-        отримайте рекомендовані рішення Bactogran
-        відповідно до параметрів поля.
-      </p>
-    </section>
+    <section
+  class="hero"
+  aria-label="Bactogran Field Advisor — Цифровий помічник"
+>
+  <img
+    class="hero-banner"
+    src="https://bactogran-demo-u2za.vercel.app/IMG_5782.PNG"
+    onerror="this.onerror=null; this.src='./IMG_5782.PNG';"
+    alt="Bactogran Field Advisor — цифровий помічник для точного розрахунку фосфорного живлення"
+  >
+</section>
 
     <section class="card">
       <h2>Параметри поля</h2>
