@@ -410,7 +410,7 @@
           id="privacyText"
           class="privacy"
         >
-          Калькулятор не збирає персональних даних.
+         Розрахунок виконується через персональне захищене посилання.
         </div>
 
         <div class="actions">
@@ -568,7 +568,8 @@ const form =
           'Соняшник': [2, 2.5, 3, 3.5, 4],
           'Соя': [2, 2.5, 3, 3.5, 4]
         },
-        privacyText: 'Калькулятор не збирає персональних даних.',
+        privacyText:
+  'Розрахунок виконується через персональне захищене посилання та зберігається в CRM Bactogran.',
         disclaimer: '* Рекомендована норма розрахована на основі середніх показників.'
       };
 
@@ -663,90 +664,160 @@ const form =
       return;
     }
 
+    const areaValue = Number(
+      String(area.value)
+        .trim()
+        .replace(',', '.')
+    );
+
+    const yieldValue = Number(
+      plannedYield.value
+    );
+
+    if (
+      !Number.isFinite(areaValue) ||
+      areaValue <= 0
+    ) {
+      showServerError({
+        message:
+          'Вкажіть коректну площу поля.'
+      });
+
+      return;
+    }
+
+    if (
+      !Number.isFinite(yieldValue) ||
+      yieldValue <= 0
+    ) {
+      showServerError({
+        message:
+          'Оберіть заплановану врожайність.'
+      });
+
+      return;
+    }
+
     const input = {
-  token: token,
-  area: area.value,
-  crop: crop.value,
-  plannedYield: plannedYield.value,
-  soilP: soilP.value,
-  pH: pH.value
-};
+      token: token,
+      area: areaValue,
+      crop: crop.value,
+      plannedYield: yieldValue,
+      soilP: soilP.value,
+      pH: pH.value
+    };
 
-        setLoading(true, 'Розрахунок…');
+    setLoading(true, 'Розрахунок…');
 
-        try {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(input)
-  });
+    try {
+      const response = await fetch(
+        API_URL,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+          body: JSON.stringify(input)
+        }
+      );
 
-  const result = await response.json();
+      const responseText =
+        await response.text();
 
-  if (!response.ok || result.status !== 'success') {
-    throw new Error(
-      result.message ||
-      'Не вдалося виконати розрахунок.'
-    );
-  }
+      let result;
 
-  const data = result.data;
-
-  const formattedResult = {
-    removalLabel: data.removalLabel,
-
-    recommendationLabel:
-      data.recommendationLabel,
-
-    totalP2O5Label:
-      data.totalP2O5Label,
-
-    status:
-      data.statusText,
-
-    comment:
-      data.comment,
-
-    explanation: {
-      title:
-        'Доступні рішення Bactogran для забезпечення потреби культури у фосфорі',
-
-      intro:
-        `Для досягнення запланованої врожайності ` +
-        `${input.crop.toLowerCase()} ` +
-        `${input.plannedYield} т/га можна обрати ` +
-        `один із наведених продуктів Bactogran:`,
-
-      fallback:
-        'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
-
-      soilActive:
-        'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах.'
-    },
-
-    products: (data.products || []).map(product => ({
-      name: product.name,
-
-      rateLabel:
-        product.rateLabel ||
-        `${formatNumber(product.rate)} кг/га`,
-
-      totalLabel:
-        product.totalLabel ||
-        `${formatNumber(product.totalTons)} т на площу ` +
-        `${formatNumber(input.area)} га`
-    }))
-  };
-
-  showResult(formattedResult);
-
-} catch (error) {
-  showServerError(error);
-}
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error(
+          'Сервер повернув некоректну відповідь.'
+        );
       }
-    );
+
+      if (
+        !response.ok ||
+        result.status !== 'success'
+      ) {
+        throw new Error(
+          result.message ||
+          'Не вдалося виконати розрахунок.'
+        );
+      }
+
+      const data = result.data || {};
+
+      const formattedResult = {
+        removalLabel:
+          data.removalLabel || '—',
+
+        recommendationLabel:
+          data.recommendationLabel || '—',
+
+        totalP2O5Label:
+          data.totalP2O5Label || '—',
+
+        status:
+          data.statusText ||
+          data.status ||
+          '',
+
+        comment:
+          data.comment || '',
+
+        explanation: {
+          title:
+            'Доступні рішення Bactogran для забезпечення потреби культури у фосфорі',
+
+          intro:
+            `Для досягнення запланованої врожайності ` +
+            `${input.crop.toLowerCase()} ` +
+            `${formatNumber(input.plannedYield)} т/га ` +
+            `можна обрати один із наведених продуктів Bactogran:`,
+
+          fallback:
+            'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
+
+          soilActive:
+            'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах. Це сприяє розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю.'
+        },
+
+        products:
+          Array.isArray(data.products)
+            ? data.products.map(
+                product => ({
+                  name:
+                    product.name ||
+                    product.shortName ||
+                    'Bactogran',
+
+                  rateLabel:
+                    product.rateLabel ||
+                    (
+                      product.rate !== undefined
+                        ? `${formatNumber(product.rate)} кг/га`
+                        : ''
+                    ),
+
+                  totalLabel:
+                    product.totalLabel ||
+                    (
+                      product.totalTons !== undefined
+                        ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
+                        : ''
+                    )
+                })
+              )
+            : []
+      };
+
+      showResult(formattedResult);
+
+    } catch (error) {
+      showServerError(error);
+    }
+  }
+);
 
 
     clearButton.addEventListener(
