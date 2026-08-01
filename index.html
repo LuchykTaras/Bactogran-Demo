@@ -2,7 +2,11 @@
 <html lang="uk">
 <head>
   <base target="_top">
-<title>Bactogran Field Advisor — Цифровий помічник</title>
+
+  <title>
+    Bactogran Field Advisor — Цифровий помічник
+  </title>
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
@@ -15,7 +19,15 @@
       --blue-soft: #eaf3fb;
       --green: #2f7d32;
       --green-soft: #edf7ee;
+
+      /* Основний колір тексту і назв над полями */
       --text: #17212b;
+      --label: #111827;
+
+      /* Темно-сірий колір значень усередині полів */
+      --field-text: #4b5563;
+      --placeholder: #4b5563;
+
       --muted: #697783;
       --line: #dce5ec;
       --background: #f3f6f8;
@@ -53,44 +65,25 @@
     .results {
       border-radius: 18px;
       background: var(--white);
-      box-shadow: 0 18px 46px rgba(19, 70, 105, 0.12);
+      box-shadow:
+        0 18px 46px rgba(19, 70, 105, 0.12);
     }
 
     .hero {
-  padding: 0;
-  overflow: hidden;
-  background: var(--white);
-  color: inherit;
-  line-height: 0;
-}
-
-.hero-banner {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin: 0;
-  border: 0;
-}
-
-    .brand {
-      margin: 0 0 8px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      padding: 0;
+      overflow: hidden;
+      background: var(--white);
+      color: inherit;
+      line-height: 0;
     }
 
-    h1 {
+    .hero-banner {
+      display: block;
+      width: 100%;
+      height: auto;
       margin: 0;
-      font-size: clamp(28px, 6vw, 44px);
-      line-height: 1.08;
-    }
-
-    .hero p {
-      max-width: 720px;
-      margin: 20px 0 0;
-      color: rgba(255,255,255,0.86);
-      font-size: 17px;
+      padding: 0;
+      border: 0;
     }
 
     .card,
@@ -102,6 +95,8 @@
     h2 {
       margin: 0 0 24px;
       color: var(--blue);
+      font-size: 26px;
+      line-height: 1.2;
     }
 
     h3 {
@@ -116,13 +111,19 @@
       gap: 18px;
     }
 
+    /* Назви над полями залишаються в оригінальному кольорі */
     label {
       display: grid;
       gap: 8px;
+      color: var(--text);
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
     }
 
+    /*
+     * Введена площа та вибрані значення
+     * відображаються темно-сірим кольором.
+     */
     input,
     select {
       width: 100%;
@@ -131,19 +132,71 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       background: var(--white);
-      color: var(--text);
+      color: var(--field-text);
+      -webkit-text-fill-color: var(--field-text);
+      font-weight: 600;
       outline: none;
+    }
+
+    input {
+      color: var(--field-text);
+      -webkit-text-fill-color: var(--field-text);
+      font-weight: 600;
+    }
+
+    select {
+      cursor: pointer;
+      color: var(--field-text);
+      -webkit-text-fill-color: var(--field-text);
+      font-weight: 600;
+    }
+
+    /* Підказка у полі площі */
+    input::placeholder {
+      color: var(--placeholder);
+      opacity: 1;
+      font-weight: 600;
+    }
+
+    /*
+     * Підказки в select:
+     * «Оберіть культуру»,
+     * «Оберіть показник»,
+     * «Оберіть pH» тощо.
+     */
+    select:required:invalid {
+      color: var(--placeholder);
+      -webkit-text-fill-color: var(--placeholder);
+      font-weight: 600;
+    }
+
+    /*
+     * Усі значення у відкритих списках:
+     * культури, урожайність, забезпеченість і pH.
+     */
+    select option {
+      color: var(--field-text) !important;
+      background: var(--white);
+      font-weight: 600;
+    }
+
+    select option[value=""] {
+      color: var(--placeholder) !important;
     }
 
     input:focus,
     select:focus {
       border-color: var(--blue);
       box-shadow:
-        0 0 0 4px rgba(15,91,167,0.12);
+        0 0 0 4px rgba(15, 91, 167, 0.12);
     }
 
     select:disabled {
+      cursor: not-allowed;
       background: #f0f3f5;
+      color: var(--field-text);
+      opacity: 1;
+      -webkit-text-fill-color: var(--field-text);
     }
 
     .privacy {
@@ -216,7 +269,7 @@
 
     .metric.featured {
       background: var(--blue-soft);
-      border-color: rgba(15,91,167,0.28);
+      border-color: rgba(15, 91, 167, 0.28);
     }
 
     .metric span {
@@ -254,7 +307,7 @@
 
     .product {
       padding: 16px;
-      border: 1px solid rgba(15,91,167,0.18);
+      border: 1px solid rgba(15, 91, 167, 0.18);
       border-radius: 12px;
       background: #f8fbfe;
     }
@@ -302,22 +355,52 @@
       }
 
       .hero {
-  padding: 0;
-}
+        padding: 0;
+      }
 
-.card,
-.results {
-  padding: 22px;
-}
+      .hero-banner {
+        width: 100%;
+        height: auto;
+      }
 
-.hero-banner {
-  width: 100%;
-  height: auto;
-}
+      .card,
+      .results {
+        padding: 22px 18px;
+      }
+
+      h2 {
+        margin-bottom: 22px;
+        font-size: 24px;
+      }
 
       .grid,
       .metrics {
         grid-template-columns: 1fr;
+      }
+
+      .grid {
+        gap: 20px;
+      }
+
+      label {
+        gap: 9px;
+        font-size: 15px;
+      }
+
+      input,
+      select {
+        min-height: 56px;
+        padding: 14px 16px;
+        color: var(--field-text);
+        -webkit-text-fill-color: var(--field-text);
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .privacy {
+        padding: 15px 16px;
+        font-size: 14px;
+        line-height: 1.55;
       }
 
       .actions {
@@ -326,6 +409,8 @@
 
       button {
         width: 100%;
+        min-height: 56px;
+        font-size: 16px;
       }
     }
   </style>
@@ -335,16 +420,19 @@
   <main class="container">
 
     <section
-  class="hero"
-  aria-label="Bactogran Field Advisor — Цифровий помічник"
->
-  <img
-    class="hero-banner"
-    src="https://bactogran-demo-u2za.vercel.app/IMG_5782.PNG"
-    onerror="this.onerror=null; this.src='./IMG_5782.PNG';"
-    alt="Bactogran Field Advisor — цифровий помічник для точного розрахунку фосфорного живлення"
-  >
-</section>
+      class="hero"
+      aria-label="Bactogran Field Advisor — Цифровий помічник"
+    >
+      <img
+        class="hero-banner"
+        src="https://bactogran-demo-u2za.vercel.app/IMG_5782.PNG"
+        onerror="
+          this.onerror = null;
+          this.src = './IMG_5782.PNG';
+        "
+        alt="Bactogran Field Advisor — цифровий помічник для точного розрахунку фосфорного живлення"
+      >
+    </section>
 
     <section class="card">
       <h2>Параметри поля</h2>
@@ -367,6 +455,7 @@
               type="text"
               inputmode="decimal"
               placeholder="Наприклад, 250"
+              autocomplete="off"
               required
             >
           </label>
@@ -374,8 +463,15 @@
           <label>
             Культура
 
-            <select id="crop" required>
-              <option value="">
+            <select
+              id="crop"
+              required
+            >
+              <option
+                value=""
+                disabled
+                selected
+              >
                 Завантаження…
               </option>
             </select>
@@ -389,7 +485,11 @@
               disabled
               required
             >
-              <option value="">
+              <option
+                value=""
+                disabled
+                selected
+              >
                 Спочатку оберіть культуру
               </option>
             </select>
@@ -398,8 +498,15 @@
           <label>
             Забезпеченість ґрунту фосфором
 
-            <select id="soilP" required>
-              <option value="">
+            <select
+              id="soilP"
+              required
+            >
+              <option
+                value=""
+                disabled
+                selected
+              >
                 Завантаження…
               </option>
             </select>
@@ -408,8 +515,15 @@
           <label>
             pH ґрунту
 
-            <select id="pH" required>
-              <option value="">
+            <select
+              id="pH"
+              required
+            >
+              <option
+                value=""
+                disabled
+                selected
+              >
                 Завантаження…
               </option>
             </select>
@@ -421,7 +535,8 @@
           id="privacyText"
           class="privacy"
         >
-         Розрахунок виконується через персональне захищене посилання.
+          Розрахунок виконується через персональне
+          захищене посилання.
         </div>
 
         <div class="actions">
@@ -454,18 +569,33 @@
       <div class="metrics">
 
         <article class="metric">
-          <span>Винос P₂O₅ із урожаєм</span>
-          <strong id="removal">—</strong>
+          <span>
+            Винос P₂O₅ із урожаєм
+          </span>
+
+          <strong id="removal">
+            —
+          </strong>
         </article>
 
         <article class="metric featured">
-          <span>Рекомендована норма P₂O₅</span>
-          <strong id="recommendation">—</strong>
+          <span>
+            Рекомендована норма P₂O₅
+          </span>
+
+          <strong id="recommendation">
+            —
+          </strong>
         </article>
 
         <article class="metric">
-          <span>Загальна потреба P₂O₅</span>
-          <strong id="total">—</strong>
+          <span>
+            Загальна потреба P₂O₅
+          </span>
+
+          <strong id="total">
+            —
+          </strong>
         </article>
 
       </div>
@@ -502,7 +632,10 @@
       </article>
 
       <article class="panel">
-        <h3>Агрономічний висновок</h3>
+        <h3>
+          Агрономічний висновок
+        </h3>
+
         <p id="comment"></p>
       </article>
 
@@ -515,47 +648,68 @@
   </main>
 
   <script>
-    // ВИДАЛЕНО: змінні SESSION_TOKEN та APP_VERSION, які викликали синтаксичну помилку в звичайному браузері
-
     let appData = null;
 
-const params =
-  new URLSearchParams(window.location.search);
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
 
-const token =
-  params.get('token');
+    const token =
+      params.get('token');
 
-const API_URL = '/api/calculate';
+    const API_URL =
+      '/api/calculate';
 
-const form =
-  document.getElementById('calculatorForm');
+    const form =
+      document.getElementById(
+        'calculatorForm'
+      );
 
     const area =
-      document.getElementById('area');
+      document.getElementById(
+        'area'
+      );
 
     const crop =
-      document.getElementById('crop');
+      document.getElementById(
+        'crop'
+      );
 
     const plannedYield =
-      document.getElementById('plannedYield');
+      document.getElementById(
+        'plannedYield'
+      );
 
     const soilP =
-      document.getElementById('soilP');
+      document.getElementById(
+        'soilP'
+      );
 
     const pH =
-      document.getElementById('pH');
+      document.getElementById(
+        'pH'
+      );
 
     const calculateButton =
-      document.getElementById('calculateButton');
+      document.getElementById(
+        'calculateButton'
+      );
 
     const clearButton =
-      document.getElementById('clearButton');
+      document.getElementById(
+        'clearButton'
+      );
 
     const errorBox =
-      document.getElementById('error');
+      document.getElementById(
+        'error'
+      );
 
     const results =
-      document.getElementById('results');
+      document.getElementById(
+        'results'
+      );
 
 
     document.addEventListener(
@@ -565,28 +719,102 @@ const form =
 
 
     function loadApp() {
-      setLoading(true, 'Завантаження…');
+      setLoading(
+        true,
+        'Завантаження…'
+      );
 
-      // Локальні дані для тестування інтерфейсу
       const mockData = {
-        crops: ['Пшениця', 'Ріпак', 'Кукурудза', 'Соняшник', 'Соя'],
-        soilOptions: ['Низька', 'Середня', 'Висока'],
-        phOptions: ['5.0', '6.0', '7.0', '8.0'],
+        crops: [
+          'Пшениця',
+          'Ріпак',
+          'Кукурудза',
+          'Соняшник',
+          'Соя'
+        ],
+
+        soilOptions: [
+          'Низька',
+          'Середня',
+          'Висока'
+        ],
+
+        phOptions: [
+          '5.0',
+          '6.0',
+          '7.0',
+          '8.0'
+        ],
+
         yieldMap: {
-          'Пшениця': [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10],
-          'Ріпак': [2, 2.5, 3, 3.5, 4, 4.5, 5],
-          'Кукурудза': [6, 7, 8, 9, 10, 11, 12, 13, 14],
-          'Соняшник': [2, 2.5, 3, 3.5, 4],
-          'Соя': [2, 2.5, 3, 3.5, 4]
+          'Пшениця': [
+            4,
+            4.5,
+            5,
+            5.5,
+            6,
+            6.5,
+            7,
+            7.5,
+            8,
+            8.5,
+            9,
+            9.5,
+            10
+          ],
+
+          'Ріпак': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4,
+            4.5,
+            5
+          ],
+
+          'Кукурудза': [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+
+          'Соняшник': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4
+          ],
+
+          'Соя': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4
+          ]
         },
+
         privacyText:
-  'Розрахунок виконується через персональне захищене посилання та зберігається в CRM Bactogran.',
-        disclaimer: '* Рекомендована норма розрахована на основі середніх показників.'
+          'Розрахунок виконується через персональне захищене посилання та зберігається в CRM Bactogran.',
+
+        disclaimer:
+          '* Рекомендована норма розрахована на основі середніх показників.'
       };
 
-      setTimeout(() => {
-        setupApp(mockData);
-      }, 300);
+      window.setTimeout(
+        function () {
+          setupApp(mockData);
+        },
+        300
+      );
     }
 
 
@@ -612,12 +840,18 @@ const form =
       );
 
       document
-        .getElementById('privacyText')
-        .textContent = data.privacyText;
+        .getElementById(
+          'privacyText'
+        )
+        .textContent =
+          data.privacyText;
 
       document
-        .getElementById('disclaimer')
-        .textContent = data.disclaimer;
+        .getElementById(
+          'disclaimer'
+        )
+        .textContent =
+          data.disclaimer;
 
       setLoading(false);
     }
@@ -627,12 +861,16 @@ const form =
       'change',
       function () {
         const options =
-          appData.yieldMap[crop.value] || [];
+          appData.yieldMap[
+            crop.value
+          ] || [];
 
         plannedYield.replaceChildren();
 
         const placeholder =
-          document.createElement('option');
+          document.createElement(
+            'option'
+          );
 
         placeholder.value = '';
 
@@ -641,194 +879,272 @@ const form =
             ? 'Оберіть урожайність'
             : 'Спочатку оберіть культуру';
 
-        plannedYield.appendChild(placeholder);
+        placeholder.disabled = true;
+        placeholder.selected = true;
 
-        options.forEach(value => {
-          const option =
-            document.createElement('option');
+        plannedYield.appendChild(
+          placeholder
+        );
 
-          option.value = value;
-          option.textContent =
-            formatNumber(value);
+        options.forEach(
+          function (value) {
+            const option =
+              document.createElement(
+                'option'
+              );
 
-          plannedYield.appendChild(option);
-        });
+            option.value = value;
+
+            option.textContent =
+              formatNumber(value);
+
+            plannedYield.appendChild(
+              option
+            );
+          }
+        );
 
         plannedYield.disabled =
-          !crop.value || !options.length;
+          !crop.value ||
+          !options.length;
       }
     );
 
 
     form.addEventListener(
-  'submit',
-  async function (event) {
-    event.preventDefault();
-    hideError();
+      'submit',
+      async function (event) {
+        event.preventDefault();
 
-    if (!token) {
-      showServerError({
-        message:
-          'Персональне посилання не містить токена.'
-      });
+        hideError();
 
-      return;
-    }
+        if (!token) {
+          showServerError({
+            message:
+              'Персональне посилання не містить токена.'
+          });
 
-    const areaValue = Number(
-      String(area.value)
-        .trim()
-        .replace(',', '.')
-    );
-
-    const yieldValue = Number(
-      plannedYield.value
-    );
-
-    if (
-      !Number.isFinite(areaValue) ||
-      areaValue <= 0
-    ) {
-      showServerError({
-        message:
-          'Вкажіть коректну площу поля.'
-      });
-
-      return;
-    }
-
-    if (
-      !Number.isFinite(yieldValue) ||
-      yieldValue <= 0
-    ) {
-      showServerError({
-        message:
-          'Оберіть заплановану врожайність.'
-      });
-
-      return;
-    }
-
-    const input = {
-      token: token,
-      area: areaValue,
-      crop: crop.value,
-      plannedYield: yieldValue,
-      soilP: soilP.value,
-      pH: pH.value
-    };
-
-    setLoading(true, 'Розрахунок…');
-
-    try {
-      const response = await fetch(
-        API_URL,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          body: JSON.stringify(input)
+          return;
         }
-      );
 
-      const responseText =
-        await response.text();
+        const areaValue =
+          Number(
+            String(area.value)
+              .trim()
+              .replace(',', '.')
+          );
 
-      let result;
+        const yieldValue =
+          Number(
+            plannedYield.value
+          );
 
-      try {
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        throw new Error(
-          'Сервер повернув некоректну відповідь.'
+        if (
+          !Number.isFinite(
+            areaValue
+          ) ||
+          areaValue <= 0
+        ) {
+          showServerError({
+            message:
+              'Вкажіть коректну площу поля.'
+          });
+
+          return;
+        }
+
+        if (!crop.value) {
+          showServerError({
+            message:
+              'Оберіть культуру.'
+          });
+
+          return;
+        }
+
+        if (
+          !Number.isFinite(
+            yieldValue
+          ) ||
+          yieldValue <= 0
+        ) {
+          showServerError({
+            message:
+              'Оберіть заплановану врожайність.'
+          });
+
+          return;
+        }
+
+        if (!soilP.value) {
+          showServerError({
+            message:
+              'Оберіть забезпеченість ґрунту фосфором.'
+          });
+
+          return;
+        }
+
+        if (!pH.value) {
+          showServerError({
+            message:
+              'Оберіть pH ґрунту.'
+          });
+
+          return;
+        }
+
+        const input = {
+          token: token,
+          area: areaValue,
+          crop: crop.value,
+          plannedYield:
+            yieldValue,
+          soilP: soilP.value,
+          pH: pH.value
+        };
+
+        setLoading(
+          true,
+          'Розрахунок…'
         );
-      }
 
-      if (
-        !response.ok ||
-        result.status !== 'success'
-      ) {
-        throw new Error(
-          result.message ||
-          'Не вдалося виконати розрахунок.'
-        );
-      }
+        try {
+          const response =
+            await fetch(
+              API_URL,
+              {
+                method: 'POST',
 
-      const data = result.data || {};
+                headers: {
+                  'Content-Type':
+                    'application/json'
+                },
 
-      const formattedResult = {
-        removalLabel:
-          data.removalLabel || '—',
+                body:
+                  JSON.stringify(
+                    input
+                  )
+              }
+            );
 
-        recommendationLabel:
-          data.recommendationLabel || '—',
+          const responseText =
+            await response.text();
 
-        totalP2O5Label:
-          data.totalP2O5Label || '—',
+          let result;
 
-        status:
-          data.statusText ||
-          data.status ||
-          '',
+          try {
+            result =
+              JSON.parse(
+                responseText
+              );
+          } catch (parseError) {
+            throw new Error(
+              'Сервер повернув некоректну відповідь.'
+            );
+          }
 
-        comment:
-          data.comment || '',
+          if (
+            !response.ok ||
+            result.status !==
+              'success'
+          ) {
+            throw new Error(
+              result.message ||
+              'Не вдалося виконати розрахунок.'
+            );
+          }
 
-        explanation: {
-          title:
-            'Доступні рішення Bactogran для забезпечення потреби культури у фосфорі',
+          const data =
+            result.data || {};
 
-          intro:
-            `Для досягнення запланованої врожайності ` +
-            `${input.crop.toLowerCase()} ` +
-            `${formatNumber(input.plannedYield)} т/га ` +
-            `можна обрати один із наведених продуктів Bactogran:`,
+          const formattedResult = {
+            removalLabel:
+              data.removalLabel ||
+              '—',
 
-          fallback:
-            'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
+            recommendationLabel:
+              data.recommendationLabel ||
+              '—',
 
-          soilActive:
-            'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах. Це сприяє розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю.'
-        },
+            totalP2O5Label:
+              data.totalP2O5Label ||
+              '—',
 
-        products:
-          Array.isArray(data.products)
-            ? data.products.map(
-                product => ({
-                  name:
-                    product.name ||
-                    product.shortName ||
-                    'Bactogran',
+            status:
+              data.statusText ||
+              data.status ||
+              '',
 
-                  rateLabel:
-                    product.rateLabel ||
-                    (
-                      product.rate !== undefined
-                        ? `${formatNumber(product.rate)} кг/га`
-                        : ''
-                    ),
+            comment:
+              data.comment ||
+              '',
 
-                  totalLabel:
-                    product.totalLabel ||
-                    (
-                      product.totalTons !== undefined
-                        ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
-                        : ''
-                    )
-                })
+            explanation: {
+              title:
+                'Доступні рішення Bactogran для забезпечення потреби культури у фосфорі',
+
+              intro:
+                `Для досягнення запланованої врожайності ` +
+                `${input.crop.toLowerCase()} ` +
+                `${formatNumber(input.plannedYield)} т/га ` +
+                `можна обрати один із наведених продуктів Bactogran:`,
+
+              fallback:
+                'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
+
+              soilActive:
+                'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах. Це сприяє розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю.'
+            },
+
+            products:
+              Array.isArray(
+                data.products
               )
-            : []
-      };
+                ? data.products.map(
+                    function (
+                      product
+                    ) {
+                      return {
+                        name:
+                          product.name ||
+                          product.shortName ||
+                          'Bactogran',
 
-      showResult(formattedResult);
+                        rateLabel:
+                          product.rateLabel ||
+                          (
+                            product.rate !==
+                              undefined
+                              ? `${formatNumber(product.rate)} кг/га`
+                              : ''
+                          ),
 
-    } catch (error) {
-      showServerError(error);
-    }
-  }
-);
+                        totalLabel:
+                          product.totalLabel ||
+                          (
+                            product.totalTons !==
+                              undefined
+                              ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
+                              : ''
+                          )
+                      };
+                    }
+                  )
+                : []
+          };
+
+          showResult(
+            formattedResult
+          );
+
+        } catch (error) {
+          showServerError(
+            error
+          );
+        }
+      }
+    );
 
 
     clearButton.addEventListener(
@@ -839,40 +1155,60 @@ const form =
 
     function showResult(result) {
       document
-        .getElementById('removal')
-        .textContent = result.removalLabel;
+        .getElementById(
+          'removal'
+        )
+        .textContent =
+          result.removalLabel;
 
       document
-        .getElementById('recommendation')
+        .getElementById(
+          'recommendation'
+        )
         .textContent =
           result.recommendationLabel;
 
       document
-        .getElementById('total')
-        .textContent = result.totalP2O5Label;
+        .getElementById(
+          'total'
+        )
+        .textContent =
+          result.totalP2O5Label;
 
       document
-        .getElementById('status')
-        .textContent = result.status;
+        .getElementById(
+          'status'
+        )
+        .textContent =
+          result.status;
 
       document
-        .getElementById('explanationTitle')
+        .getElementById(
+          'explanationTitle'
+        )
         .textContent =
           result.explanation.title;
 
       document
-        .getElementById('explanationIntro')
+        .getElementById(
+          'explanationIntro'
+        )
         .textContent =
           result.explanation.intro;
 
       document
-        .getElementById('soilActive')
+        .getElementById(
+          'soilActive'
+        )
         .textContent =
           result.explanation.soilActive;
 
       document
-        .getElementById('comment')
-        .textContent = result.comment;
+        .getElementById(
+          'comment'
+        )
+        .textContent =
+          result.comment;
 
       renderProducts(
         result.products,
@@ -896,7 +1232,9 @@ const form =
       fallback
     ) {
       const container =
-        document.getElementById('products');
+        document.getElementById(
+          'products'
+        );
 
       const fallbackElement =
         document.getElementById(
@@ -906,62 +1244,101 @@ const form =
       container.replaceChildren();
 
       if (!products.length) {
-        fallbackElement.textContent = fallback;
-        fallbackElement.hidden = false;
+        fallbackElement.textContent =
+          fallback;
+
+        fallbackElement.hidden =
+          false;
+
         return;
       }
 
-      fallbackElement.hidden = true;
+      fallbackElement.hidden =
+        true;
 
-      products.forEach(product => {
-        const card =
-          document.createElement('article');
+      products.forEach(
+        function (product) {
+          const card =
+            document.createElement(
+              'article'
+            );
 
-        card.className = 'product';
+          card.className =
+            'product';
 
-        const title =
-          document.createElement('strong');
+          const title =
+            document.createElement(
+              'strong'
+            );
 
-        title.textContent = product.name;
+          title.textContent =
+            product.name;
 
-        const rate =
-          document.createElement('p');
+          const rate =
+            document.createElement(
+              'p'
+            );
 
-        rate.textContent =
-          `${product.rateLabel} · ` +
-          `${product.totalLabel}`;
+          const details = [
+            product.rateLabel,
+            product.totalLabel
+          ].filter(Boolean);
 
-        card.append(title, rate);
-        container.appendChild(card);
-      });
+          rate.textContent =
+            details.join(' · ');
+
+          card.append(
+            title,
+            rate
+          );
+
+          container.appendChild(
+            card
+          );
+        }
+      );
     }
 
 
     function fillSelect(
-      select,
+      selectElement,
       values,
       placeholderText
     ) {
-      select.replaceChildren();
+      selectElement.replaceChildren();
 
       const placeholder =
-        document.createElement('option');
+        document.createElement(
+          'option'
+        );
 
       placeholder.value = '';
+
       placeholder.textContent =
         placeholderText;
 
-      select.appendChild(placeholder);
+      placeholder.disabled = true;
+      placeholder.selected = true;
 
-      values.forEach(value => {
-        const option =
-          document.createElement('option');
+      selectElement.appendChild(
+        placeholder
+      );
 
-        option.value = value;
-        option.textContent = value;
+      values.forEach(
+        function (value) {
+          const option =
+            document.createElement(
+              'option'
+            );
 
-        select.appendChild(option);
-      });
+          option.value = value;
+          option.textContent = value;
+
+          selectElement.appendChild(
+            option
+          );
+        }
+      );
     }
 
 
@@ -971,16 +1348,28 @@ const form =
       plannedYield.replaceChildren();
 
       const option =
-        document.createElement('option');
+        document.createElement(
+          'option'
+        );
 
       option.value = '';
+
       option.textContent =
         'Спочатку оберіть культуру';
 
-      plannedYield.appendChild(option);
-      plannedYield.disabled = true;
+      option.disabled = true;
+      option.selected = true;
 
-      results.hidden = true;
+      plannedYield.appendChild(
+        option
+      );
+
+      plannedYield.disabled =
+        true;
+
+      results.hidden =
+        true;
+
       hideError();
 
       area.focus();
@@ -991,8 +1380,11 @@ const form =
       loading,
       text
     ) {
-      calculateButton.disabled = loading;
-      clearButton.disabled = loading;
+      calculateButton.disabled =
+        loading;
+
+      clearButton.disabled =
+        loading;
 
       calculateButton.textContent =
         loading
@@ -1005,11 +1397,13 @@ const form =
       setLoading(false);
 
       errorBox.textContent =
-        error && error.message
+        error &&
+        error.message
           ? error.message
           : 'Виникла помилка. Повторіть спробу.';
 
-      errorBox.hidden = false;
+      errorBox.hidden =
+        false;
 
       errorBox.scrollIntoView({
         behavior: 'smooth',
@@ -1019,21 +1413,33 @@ const form =
 
 
     function hideError() {
-      errorBox.hidden = true;
-      errorBox.textContent = '';
+      errorBox.hidden =
+        true;
+
+      errorBox.textContent =
+        '';
     }
 
 
     function formatNumber(value) {
-      const number = Number(value);
+      const number =
+        Number(value);
 
-      if (!Number.isFinite(number)) {
+      if (
+        !Number.isFinite(
+          number
+        )
+      ) {
         return value;
       }
 
-      return Number.isInteger(number)
+      return Number.isInteger(
+        number
+      )
         ? String(number)
-        : number.toFixed(1).replace('.', ',');
+        : number
+            .toFixed(1)
+            .replace('.', ',');
     }
   </script>
 </body>
