@@ -1031,31 +1031,66 @@
             );
 
           const responseText =
-            await response.text();
+  await response.text();
 
-          let result;
+let result;
 
-          try {
-            result =
-              JSON.parse(
-                responseText
-              );
-          } catch (parseError) {
-            throw new Error(
-              'Сервер повернув некоректну відповідь.'
-            );
-          }
+try {
+  result =
+    JSON.parse(
+      responseText
+    );
+} catch (parseError) {
+  console.error(
+    'Некоректна відповідь /api/calculate:',
+    {
+      status:
+        response.status,
 
-          if (
-            !response.ok ||
-            result.status !==
-              'success'
-          ) {
-            throw new Error(
-              result.message ||
-              'Не вдалося виконати розрахунок.'
-            );
-          }
+      contentType:
+        response.headers.get(
+          'content-type'
+        ),
+
+      body:
+        responseText.slice(
+          0,
+          500
+        )
+    }
+  );
+
+     throw new Error(
+    'Сервер повернув некоректну відповідь.'
+  );
+}
+
+   if (
+     result.status ===
+    'active'
+) 
+  {
+   console.error(
+    'Отримано відповідь doGet замість doPost:',
+    result
+   );
+
+   throw new Error(
+    'API-проксі виконав GET замість POST.'
+   );
+  }
+
+  if (
+  !response.ok ||
+  result.status !==
+    'success'
+  )
+  {
+   throw new Error(
+    result.message ||
+    'Не вдалося виконати розрахунок.'
+    );
+  }
 
           const data =
             result.data || {};
