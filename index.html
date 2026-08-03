@@ -19,15 +19,10 @@
       --blue-soft: #eaf3fb;
       --green: #2f7d32;
       --green-soft: #edf7ee;
-
-      /* Основний колір тексту і назв над полями */
       --text: #17212b;
       --label: #111827;
-
-      /* Темно-сірий колір значень усередині полів */
       --field-text: #4b5563;
       --placeholder: #4b5563;
-
       --muted: #697783;
       --line: #dce5ec;
       --background: #f3f6f8;
@@ -111,19 +106,14 @@
       gap: 18px;
     }
 
-    /* Назви над полями залишаються в оригінальному кольорі */
     label {
-      display: grid;
-      gap: 8px;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 800;
+    display: grid;
+    gap: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
     }
 
-    /*
-     * Введена площа та вибрані значення
-     * відображаються темно-сірим кольором.
-     */
     input,
     select {
       width: 100%;
@@ -138,12 +128,6 @@
       outline: none;
     }
 
-    input {
-      color: var(--field-text);
-      -webkit-text-fill-color: var(--field-text);
-      font-weight: 600;
-    }
-
     select {
       cursor: pointer;
       color: var(--field-text);
@@ -151,29 +135,23 @@
       font-weight: 600;
     }
 
-    /* Підказка у полі площі */
+    input {
+      color: var(--field-text);
+      -webkit-text-fill-color: var(--field-text);
+      font-weight: 600;
+    }
+
     input::placeholder {
       color: var(--placeholder);
       opacity: 1;
       font-weight: 600;
     }
 
-    /*
-     * Підказки в select:
-     * «Оберіть культуру»,
-     * «Оберіть показник»,
-     * «Оберіть pH» тощо.
-     */
     select:required:invalid {
       color: var(--placeholder);
-      -webkit-text-fill-color: var(--placeholder);
       font-weight: 600;
     }
 
-    /*
-     * Усі значення у відкритих списках:
-     * культури, урожайність, забезпеченість і pH.
-     */
     select option {
       color: var(--field-text) !important;
       background: var(--white);
@@ -181,7 +159,7 @@
     }
 
     select option[value=""] {
-      color: var(--placeholder) !important;
+      color: var(--placeholder);
     }
 
     input:focus,
@@ -391,10 +369,7 @@
       select {
         min-height: 56px;
         padding: 14px 16px;
-        color: var(--field-text);
-        -webkit-text-fill-color: var(--field-text);
         font-size: 16px;
-        font-weight: 600;
       }
 
       .privacy {
@@ -661,9 +636,6 @@
     const API_URL =
       '/api/calculate';
 
-    const APP_DATA_URL =
-      '/api/app-data';
-
     const form =
       document.getElementById(
         'calculatorForm'
@@ -721,65 +693,105 @@
     );
 
 
-    async function loadApp() {
+    function loadApp() {
       setLoading(
         true,
         'Завантаження…'
       );
 
-      hideError();
+      const mockData = {
+        crops: [
+          'Пшениця',
+          'Ріпак',
+          'Кукурудза',
+          'Соняшник',
+          'Соя'
+        ],
 
-      try {
-        const response =
-          await fetch(
-            APP_DATA_URL,
-            {
-              method: 'GET',
-              headers: {
-                'Accept':
-                  'application/json'
-              },
-              cache: 'no-store'
-            }
-          );
+        soilOptions: [
+          'Низька',
+          'Середня',
+          'Висока'
+        ],
 
-        const responseText =
-          await response.text();
+        phOptions: [
+          '5.0',
+          '6.0',
+          '7.0',
+          '8.0'
+        ],
 
-        let result;
+        yieldMap: {
+          'Пшениця': [
+            4,
+            4.5,
+            5,
+            5.5,
+            6,
+            6.5,
+            7,
+            7.5,
+            8,
+            8.5,
+            9,
+            9.5,
+            10
+          ],
 
-        try {
-          result =
-            JSON.parse(
-              responseText
-            );
-        } catch (parseError) {
-          throw new Error(
-            'Сервер повернув некоректні довідники.'
-          );
-        }
+          'Ріпак': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4,
+            4.5,
+            5
+          ],
 
-        if (
-          !response.ok ||
-          result.status !== 'success' ||
-          !result.data
-        ) {
-          throw new Error(
-            result.message ||
-            'Не вдалося завантажити довідники калькулятора.'
-          );
-        }
+          'Кукурудза': [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
 
-        setupApp(
-          result.data
-        );
+          'Соняшник': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4
+          ],
 
-      } catch (error) {
-        showServerError(
-          error
-        );
-      }
+          'Соя': [
+            2,
+            2.5,
+            3,
+            3.5,
+            4
+          ]
+        },
+
+        privacyText:
+          'Розрахунок виконується через персональне захищене посилання та зберігається в CRM Bactogran.',
+
+        disclaimer:
+          '* Рекомендована норма розрахована на основі середніх показників.'
+      };
+
+      window.setTimeout(
+        function () {
+          setupApp(mockData);
+        },
+        300
+      );
     }
+
 
     function setupApp(data) {
       appData = data;
@@ -1406,4 +1418,4 @@
     }
   </script>
 </body>
-</html>
+</html> 
