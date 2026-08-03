@@ -200,9 +200,18 @@
       border-radius: 12px;
       cursor: pointer;
       font-weight: 800;
+
+      /* Надійний tap на Android та iOS. */
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color:
+        rgba(15, 91, 167, 0.18);
     }
 
     .primary {
+      position: relative;
+      z-index: 2;
       flex: 1;
       background: var(--blue);
       color: var(--white);
@@ -221,6 +230,11 @@
     button:disabled {
       cursor: wait;
       opacity: 0.65;
+      pointer-events: none;
+    }
+
+    button:not(:disabled) {
+      pointer-events: auto;
     }
 
     .error {
@@ -379,7 +393,28 @@
       }
 
       .actions {
+        position: sticky;
+        bottom: max(
+          8px,
+          env(safe-area-inset-bottom)
+        );
+        z-index: 30;
         flex-direction: column;
+        padding: 8px;
+        border-radius: 14px;
+        background: rgba(
+          255,
+          255,
+          255,
+          0.96
+        );
+        box-shadow:
+          0 10px 28px
+          rgba(19, 70, 105, 0.16);
+        -webkit-backdrop-filter:
+          blur(8px);
+        backdrop-filter:
+          blur(8px);
       }
 
       button {
@@ -609,6 +644,7 @@
 
   <script>
     let appData = null;
+    let requestInProgress = false;
 
     const params =
       new URLSearchParams(
@@ -677,12 +713,46 @@
       loadApp
     );
 
+    /*
+     * Android та iOS можуть відновити сторінку
+     * зі стану Back/Forward Cache разом із
+     * disabled-кнопкою. Після повернення
+     * активуємо кнопку, якщо запит не виконується.
+     */
+    window.addEventListener(
+      'pageshow',
+      function () {
+        if (
+          appData &&
+          !requestInProgress
+        ) {
+          setLoading(false);
+        }
+      }
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      function () {
+        if (
+          !document.hidden &&
+          appData &&
+          !requestInProgress
+        ) {
+          setLoading(false);
+        }
+      }
+    );
+
 
     function loadApp() {
-      setLoading(
-        true,
-        'Завантаження…'
-      );
+      /*
+       * Дані форми локальні, тому кнопку
+       * не блокуємо під час стартових 300 мс.
+       * Валідація нижче не дозволить надіслати
+       * неповну форму.
+       */
+      setLoading(false);
 
       /*
        * Значення врожайності точно відповідають
@@ -1006,10 +1076,30 @@
           pH: pH.value
         };
 
+        requestInProgress =
+          true;
+
         setLoading(
           true,
           'Розрахунок…'
         );
+
+        /*
+         * Страховка від завислого мережевого
+         * запиту: через 30 секунд запит
+         * переривається, а кнопка знову
+         * стає активною.
+         */
+        const requestController =
+          new AbortController();
+
+        const requestTimeoutId =
+          window.setTimeout(
+            function () {
+              requestController.abort();
+            },
+            30000
+          );
 
         try {
           const response =
@@ -1026,71 +1116,72 @@
                 body:
                   JSON.stringify(
                     input
-                  )
+                  ),
+
+                signal:
+                  requestController.signal
               }
             );
 
           const responseText =
-  await response.text();
+            await response.text();
 
-let result;
+          let result;
 
-try {
-  result =
-    JSON.parse(
-      responseText
-    );
-} catch (parseError) {
-  console.error(
-    'Некоректна відповідь /api/calculate:',
-    {
-      status:
-        response.status,
+          try {
+            result =
+              JSON.parse(
+                responseText
+              );
+          } catch (parseError) {
+            console.error(
+              'Некоректна відповідь /api/calculate:',
+              {
+                status:
+                  response.status,
 
-      contentType:
-        response.headers.get(
-          'content-type'
-        ),
+                contentType:
+                  response.headers.get(
+                    'content-type'
+                  ),
 
-      body:
-        responseText.slice(
-          0,
-          500
-        )
-    }
-  );
+                body:
+                  responseText.slice(
+                    0,
+                    500
+                  )
+              }
+            );
 
-     throw new Error(
-    'Сервер повернув некоректну відповідь.'
-  );
-}
+            throw new Error(
+              'Сервер повернув некоректну відповідь.'
+            );
+          }
 
-   if (
-     result.status ===
-    'active'
-) 
-  {
-   console.error(
-    'Отримано відповідь doGet замість doPost:',
-    result
-   );
+          if (
+            result.status ===
+              'active'
+          ) {
+            console.error(
+              'Отримано відповідь doGet замість doPost:',
+              result
+            );
 
-   throw new Error(
-    'API-проксі виконав GET замість POST.'
-   );
-  }
+            throw new Error(
+              'API-проксі виконав GET замість POST.'
+            );
+          }
 
-  if (
-  !response.ok ||
-  result.status !==
-    'success'
-  )
-  {
-   throw new Error(
-    result.message ||
-    'Не вдалося виконати розрахунок.'
-    );
-  }
+          if (
+            !response.ok ||
+            result.status !==
+              'success'
+          ) {
+            throw new Error(
+              result.message ||
+              'Не вдалося виконати розрахунок.'
+            );
+          }
 
           const data =
             result.data || {};
@@ -1206,9 +1297,34 @@ try {
           );
 
         } catch (error) {
-          showServerError(
-            error
+          if (
+            error &&
+            error.name ===
+              'AbortError'
+          ) {
+            showServerError({
+              message:
+                'Сервер не відповів протягом 30 секунд. Повторіть розрахунок.'
+            });
+          } else {
+            showServerError(
+              error
+            );
+          }
+        } finally {
+          window.clearTimeout(
+            requestTimeoutId
           );
+
+          requestInProgress =
+            false;
+
+          /*
+           * Гарантовано повертаємо активну
+           * кнопку після успіху, помилки,
+           * таймауту або відновлення вкладки.
+           */
+          setLoading(false);
         }
       }
     );
@@ -1491,15 +1607,28 @@ try {
       loading,
       text
     ) {
+      const isLoading =
+        Boolean(loading);
+
       calculateButton.disabled =
-        loading;
+        isLoading;
 
       clearButton.disabled =
-        loading;
+        isLoading;
+
+      calculateButton.setAttribute(
+        'aria-busy',
+        isLoading
+          ? 'true'
+          : 'false'
+      );
 
       calculateButton.textContent =
-        loading
-          ? text
+        isLoading
+          ? (
+              text ||
+              'Розрахунок…'
+            )
           : 'Розрахувати';
     }
 
