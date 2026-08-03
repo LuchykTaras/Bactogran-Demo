@@ -661,6 +661,9 @@
     const API_URL =
       '/api/calculate';
 
+    const APP_DATA_URL =
+      '/api/app-data';
+
     const form =
       document.getElementById(
         'calculatorForm'
@@ -718,105 +721,65 @@
     );
 
 
-    function loadApp() {
+    async function loadApp() {
       setLoading(
         true,
         'Завантаження…'
       );
 
-      const mockData = {
-        crops: [
-          'Пшениця',
-          'Ріпак',
-          'Кукурудза',
-          'Соняшник',
-          'Соя'
-        ],
+      hideError();
 
-        soilOptions: [
-          'Низька',
-          'Середня',
-          'Висока'
-        ],
+      try {
+        const response =
+          await fetch(
+            APP_DATA_URL,
+            {
+              method: 'GET',
+              headers: {
+                'Accept':
+                  'application/json'
+              },
+              cache: 'no-store'
+            }
+          );
 
-        phOptions: [
-          '5.0',
-          '6.0',
-          '7.0',
-          '8.0'
-        ],
+        const responseText =
+          await response.text();
 
-        yieldMap: {
-          'Пшениця': [
-            4,
-            4.5,
-            5,
-            5.5,
-            6,
-            6.5,
-            7,
-            7.5,
-            8,
-            8.5,
-            9,
-            9.5,
-            10
-          ],
+        let result;
 
-          'Ріпак': [
-            2,
-            2.5,
-            3,
-            3.5,
-            4,
-            4.5,
-            5
-          ],
+        try {
+          result =
+            JSON.parse(
+              responseText
+            );
+        } catch (parseError) {
+          throw new Error(
+            'Сервер повернув некоректні довідники.'
+          );
+        }
 
-          'Кукурудза': [
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14
-          ],
+        if (
+          !response.ok ||
+          result.status !== 'success' ||
+          !result.data
+        ) {
+          throw new Error(
+            result.message ||
+            'Не вдалося завантажити довідники калькулятора.'
+          );
+        }
 
-          'Соняшник': [
-            2,
-            2.5,
-            3,
-            3.5,
-            4
-          ],
+        setupApp(
+          result.data
+        );
 
-          'Соя': [
-            2,
-            2.5,
-            3,
-            3.5,
-            4
-          ]
-        },
-
-        privacyText:
-          'Розрахунок виконується через персональне захищене посилання та зберігається в CRM Bactogran.',
-
-        disclaimer:
-          '* Рекомендована норма розрахована на основі середніх показників.'
-      };
-
-      window.setTimeout(
-        function () {
-          setupApp(mockData);
-        },
-        300
-      );
+      } catch (error) {
+        showServerError(
+          error
+        );
+      }
     }
-
 
     function setupApp(data) {
       appData = data;
