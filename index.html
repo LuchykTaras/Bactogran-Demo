@@ -19,11 +19,12 @@
       --blue-soft: #eaf3fb;
       --green: #2f7d32;
       --green-soft: #edf7ee;
+
       --text: #17212b;
-      --label: #111827;
       --field-text: #4b5563;
       --placeholder: #4b5563;
       --muted: #697783;
+
       --line: #dce5ec;
       --background: #f3f6f8;
       --white: #ffffff;
@@ -68,7 +69,6 @@
       padding: 0;
       overflow: hidden;
       background: var(--white);
-      color: inherit;
       line-height: 0;
     }
 
@@ -107,11 +107,11 @@
     }
 
     label {
-    display: grid;
-    gap: 8px;
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 800;
+      display: grid;
+      gap: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
     }
 
     input,
@@ -122,23 +122,17 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       background: var(--white);
+
       color: var(--field-text);
       -webkit-text-fill-color: var(--field-text);
+
       font-weight: 600;
       outline: none;
-    }
-
-    select {
-      cursor: pointer;
-      color: var(--field-text);
-      -webkit-text-fill-color: var(--field-text);
-      font-weight: 600;
     }
 
     input {
       color: var(--field-text);
       -webkit-text-fill-color: var(--field-text);
-      font-weight: 600;
     }
 
     input::placeholder {
@@ -147,9 +141,15 @@
       font-weight: 600;
     }
 
+    select {
+      cursor: pointer;
+      color: var(--field-text);
+      -webkit-text-fill-color: var(--field-text);
+    }
+
     select:required:invalid {
       color: var(--placeholder);
-      font-weight: 600;
+      -webkit-text-fill-color: var(--placeholder);
     }
 
     select option {
@@ -159,7 +159,7 @@
     }
 
     select option[value=""] {
-      color: var(--placeholder);
+      color: var(--placeholder) !important;
     }
 
     input:focus,
@@ -367,8 +367,8 @@
 
       input,
       select {
-        min-height: 56px;
-        padding: 14px 16px;
+        min-height: 58px;
+        padding: 15px 16px;
         font-size: 16px;
       }
 
@@ -544,33 +544,18 @@
       <div class="metrics">
 
         <article class="metric">
-          <span>
-            Винос P₂O₅ із урожаєм
-          </span>
-
-          <strong id="removal">
-            —
-          </strong>
+          <span>Винос P₂O₅ із урожаєм</span>
+          <strong id="removal">—</strong>
         </article>
 
         <article class="metric featured">
-          <span>
-            Рекомендована норма P₂O₅
-          </span>
-
-          <strong id="recommendation">
-            —
-          </strong>
+          <span>Рекомендована норма P₂O₅</span>
+          <strong id="recommendation">—</strong>
         </article>
 
         <article class="metric">
-          <span>
-            Загальна потреба P₂O₅
-          </span>
-
-          <strong id="total">
-            —
-          </strong>
+          <span>Загальна потреба P₂O₅</span>
+          <strong id="total">—</strong>
         </article>
 
       </div>
@@ -699,6 +684,10 @@
         'Завантаження…'
       );
 
+      /*
+       * Значення врожайності точно відповідають
+       * таблиці «Орієнтовна врожайність».
+       */
       const mockData = {
         crops: [
           'Пшениця',
@@ -739,28 +728,36 @@
           ],
 
           'Ріпак': [
+            1.5,
             2,
             2.5,
             3,
             3.5,
-            4,
-            4.5,
-            5
+            4
           ],
 
           'Кукурудза': [
+            4,
+            4.5,
+            5,
+            5.5,
             6,
+            6.5,
             7,
+            7.5,
             8,
+            8.5,
             9,
+            9.5,
             10,
+            10.5,
             11,
-            12,
-            13,
-            14
+            11.5,
+            12
           ],
 
           'Соняшник': [
+            1.5,
             2,
             2.5,
             3,
@@ -769,6 +766,7 @@
           ],
 
           'Соя': [
+            1.5,
             2,
             2.5,
             3,
@@ -835,9 +833,12 @@
     crop.addEventListener(
       'change',
       function () {
+        const selectedCrop =
+          crop.value;
+
         const options =
           appData.yieldMap[
-            crop.value
+            selectedCrop
           ] || [];
 
         plannedYield.replaceChildren();
@@ -850,7 +851,7 @@
         placeholder.value = '';
 
         placeholder.textContent =
-          crop.value
+          selectedCrop
             ? 'Оберіть урожайність'
             : 'Спочатку оберіть культуру';
 
@@ -868,7 +869,8 @@
                 'option'
               );
 
-            option.value = value;
+            option.value =
+              String(value);
 
             option.textContent =
               formatNumber(value);
@@ -880,8 +882,11 @@
         );
 
         plannedYield.disabled =
-          !crop.value ||
-          !options.length;
+          !selectedCrop ||
+          options.length === 0;
+
+        results.hidden = true;
+        hideError();
       }
     );
 
@@ -946,6 +951,28 @@
           showServerError({
             message:
               'Оберіть заплановану врожайність.'
+          });
+
+          return;
+        }
+
+        const allowedYields =
+          appData.yieldMap[
+            crop.value
+          ] || [];
+
+        const yieldExists =
+          allowedYields.some(
+            function (value) {
+              return Number(value) ===
+                yieldValue;
+            }
+          );
+
+        if (!yieldExists) {
+          showServerError({
+            message:
+              'Обрана врожайність не відповідає вибраній культурі.'
           });
 
           return;
@@ -1033,6 +1060,35 @@
           const data =
             result.data || {};
 
+          /*
+           * Сортування продуктів:
+           * 1. NP 4.28
+           * 2. NPK 5.16.7
+           * 3. NKS 8.10.22
+           */
+          const orderedProducts =
+            Array.isArray(
+              data.products
+            )
+              ? data.products
+                  .slice()
+                  .sort(
+                    function (
+                      firstProduct,
+                      secondProduct
+                    ) {
+                      return (
+                        getProductOrder(
+                          firstProduct
+                        ) -
+                        getProductOrder(
+                          secondProduct
+                        )
+                      );
+                    }
+                  )
+              : [];
+
           const formattedResult = {
             removalLabel:
               data.removalLabel ||
@@ -1073,40 +1129,41 @@
             },
 
             products:
-              Array.isArray(
-                data.products
+              orderedProducts.map(
+                function (
+                  product
+                ) {
+                  return {
+                    name:
+                      product.name ||
+                      product.shortName ||
+                      'Bactogran',
+
+                    rate:
+                      Number(
+                        product.rate
+                      ),
+
+                    rateLabel:
+                      product.rateLabel ||
+                      (
+                        product.rate !==
+                          undefined
+                          ? `${formatNumber(product.rate)} кг/га`
+                          : ''
+                      ),
+
+                    totalLabel:
+                      product.totalLabel ||
+                      (
+                        product.totalTons !==
+                          undefined
+                          ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
+                          : ''
+                      )
+                  };
+                }
               )
-                ? data.products.map(
-                    function (
-                      product
-                    ) {
-                      return {
-                        name:
-                          product.name ||
-                          product.shortName ||
-                          'Bactogran',
-
-                        rateLabel:
-                          product.rateLabel ||
-                          (
-                            product.rate !==
-                              undefined
-                              ? `${formatNumber(product.rate)} кг/га`
-                              : ''
-                          ),
-
-                        totalLabel:
-                          product.totalLabel ||
-                          (
-                            product.totalTons !==
-                              undefined
-                              ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
-                              : ''
-                          )
-                      };
-                    }
-                  )
-                : []
           };
 
           showResult(
@@ -1126,6 +1183,47 @@
       'click',
       clearForm
     );
+
+
+    function getProductOrder(
+      product
+    ) {
+      const productName =
+        String(
+          product.name ||
+          product.shortName ||
+          ''
+        )
+          .toUpperCase()
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      if (
+        productName.includes(
+          'NP 4.28'
+        )
+      ) {
+        return 1;
+      }
+
+      if (
+        productName.includes(
+          'NPK 5.16.7'
+        )
+      ) {
+        return 2;
+      }
+
+      if (
+        productName.includes(
+          'NKS 8.10.22'
+        )
+      ) {
+        return 3;
+      }
+
+      return 100;
+    }
 
 
     function showResult(result) {
@@ -1306,8 +1404,11 @@
               'option'
             );
 
-          option.value = value;
-          option.textContent = value;
+          option.value =
+            String(value);
+
+          option.textContent =
+            String(value);
 
           selectElement.appendChild(
             option
@@ -1418,4 +1519,4 @@
     }
   </script>
 </body>
-</html> 
+</html>
