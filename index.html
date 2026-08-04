@@ -9,7 +9,7 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
   <style>
@@ -200,6 +200,9 @@
       border-radius: 12px;
       cursor: pointer;
       font-weight: 800;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     .primary {
@@ -216,6 +219,28 @@
       border: 1px solid var(--line);
       background: var(--white);
       color: var(--blue);
+    }
+
+    .stop-button {
+      border: 1px solid #f1b5af;
+      background: #fff7f6;
+      color: var(--danger);
+    }
+
+    .error.retrying {
+      background: #fff8e6;
+      color: #805b00;
+    }
+
+    .recommendation-note {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid #cae3cc;
+      border-left: 4px solid var(--green);
+      border-radius: 10px;
+      background: var(--green-soft);
+      color: #245f28;
+      font-weight: 700;
     }
 
     button:disabled {
@@ -324,6 +349,11 @@
       .container {
         width: min(100% - 16px, 920px);
         padding-top: 8px;
+        padding-bottom:
+          calc(
+            96px +
+            env(safe-area-inset-bottom)
+          );
       }
 
       .hero,
@@ -379,7 +409,23 @@
       }
 
       .actions {
+        position: sticky;
+        bottom: max(
+          8px,
+          env(safe-area-inset-bottom)
+        );
+        z-index: 30;
         flex-direction: column;
+        padding: 10px;
+        margin-right: -10px;
+        margin-left: -10px;
+        border: 1px solid rgba(220, 229, 236, 0.92);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow:
+          0 -10px 30px rgba(19, 70, 105, 0.14);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       button {
@@ -524,6 +570,15 @@
           </button>
 
           <button
+            id="stopButton"
+            class="stop-button"
+            type="button"
+            hidden
+          >
+            Зупинити повторні спроби
+          </button>
+
+          <button
             id="clearButton"
             class="secondary"
             type="button"
@@ -582,6 +637,11 @@
           hidden
         ></p>
 
+        <div
+          id="bactogranNotice"
+          class="recommendation-note"
+        ></div>
+
         <div class="soil-active">
           <strong>
             Біокомплекс Soil Active
@@ -609,6 +669,10 @@
 
   <script>
     let appData = null;
+    let isSubmitting = false;
+    let stopRequested = false;
+    let activeRequestController = null;
+    let activeRequestId = null;
 
     const params =
       new URLSearchParams(
@@ -661,6 +725,16 @@
         'clearButton'
       );
 
+    const stopButton =
+      document.getElementById(
+        'stopButton'
+      );
+
+    const bactogranNotice =
+      document.getElementById(
+        'bactogranNotice'
+      );
+
     const errorBox =
       document.getElementById(
         'error'
@@ -684,10 +758,6 @@
         'Завантаження…'
       );
 
-      /*
-       * Значення врожайності точно відповідають
-       * таблиці «Орієнтовна врожайність».
-       */
       const mockData = {
         crops: [
           'Пшениця',
@@ -712,66 +782,26 @@
 
         yieldMap: {
           'Пшениця': [
-            4,
-            4.5,
-            5,
-            5.5,
-            6,
-            6.5,
-            7,
-            7.5,
-            8,
-            8.5,
-            9,
-            9.5,
-            10
+            4, 4.5, 5, 5.5, 6, 6.5,
+            7, 7.5, 8, 8.5, 9, 9.5, 10
           ],
 
           'Ріпак': [
-            1.5,
-            2,
-            2.5,
-            3,
-            3.5,
-            4
+            1.5, 2, 2.5, 3, 3.5, 4
           ],
 
           'Кукурудза': [
-            4,
-            4.5,
-            5,
-            5.5,
-            6,
-            6.5,
-            7,
-            7.5,
-            8,
-            8.5,
-            9,
-            9.5,
-            10,
-            10.5,
-            11,
-            11.5,
-            12
+            4, 4.5, 5, 5.5, 6, 6.5,
+            7, 7.5, 8, 8.5, 9, 9.5,
+            10, 10.5, 11, 11.5, 12
           ],
 
           'Соняшник': [
-            1.5,
-            2,
-            2.5,
-            3,
-            3.5,
-            4
+            1.5, 2, 2.5, 3, 3.5, 4
           ],
 
           'Соя': [
-            1.5,
-            2,
-            2.5,
-            3,
-            3.5,
-            4
+            1.5, 2, 2.5, 3, 3.5, 4
           ]
         },
 
@@ -896,6 +926,10 @@
       async function (event) {
         event.preventDefault();
 
+        if (isSubmitting) {
+          return;
+        }
+
         hideError();
 
         if (!token) {
@@ -996,15 +1030,36 @@
           return;
         }
 
+        const requestId =
+          createRequestId();
+
         const input = {
-          token: token,
-          area: areaValue,
-          crop: crop.value,
+          requestId:
+            requestId,
+
+          token:
+            token,
+
+          area:
+            areaValue,
+
+          crop:
+            crop.value,
+
           plannedYield:
             yieldValue,
-          soilP: soilP.value,
-          pH: pH.value
+
+          soilP:
+            soilP.value,
+
+          pH:
+            pH.value
         };
+
+        isSubmitting = true;
+        stopRequested = false;
+        activeRequestId =
+          requestId;
 
         setLoading(
           true,
@@ -1012,95 +1067,14 @@
         );
 
         try {
-          const response =
-            await fetch(
-              API_URL,
-              {
-                method: 'POST',
-
-                headers: {
-                  'Content-Type':
-                    'application/json'
-                },
-
-                body:
-                  JSON.stringify(
-                    input
-                  )
-              }
+          const result =
+            await fetchCalculationUntilSuccess(
+              input
             );
-
-          const responseText =
-  await response.text();
-
-let result;
-
-try {
-  result =
-    JSON.parse(
-      responseText
-    );
-} catch (parseError) {
-  console.error(
-    'Некоректна відповідь /api/calculate:',
-    {
-      status:
-        response.status,
-
-      contentType:
-        response.headers.get(
-          'content-type'
-        ),
-
-      body:
-        responseText.slice(
-          0,
-          500
-        )
-    }
-  );
-
-     throw new Error(
-    'Сервер повернув некоректну відповідь.'
-  );
-}
-
-   if (
-     result.status ===
-    'active'
-) 
-  {
-   console.error(
-    'Отримано відповідь doGet замість doPost:',
-    result
-   );
-
-   throw new Error(
-    'API-проксі виконав GET замість POST.'
-   );
-  }
-
-  if (
-  !response.ok ||
-  result.status !==
-    'success'
-  )
-  {
-   throw new Error(
-    result.message ||
-    'Не вдалося виконати розрахунок.'
-    );
-  }
 
           const data =
             result.data || {};
 
-          /*
-           * Сортування продуктів:
-           * 1. NP 4.28
-           * 2. NPK 5.16.7
-           * 3. NKS 8.10.22
-           */
           const orderedProducts =
             Array.isArray(
               data.products
@@ -1124,6 +1098,98 @@ try {
                   )
               : [];
 
+          const recommendationValue =
+            Number(
+              data.recommendationP2O5
+            );
+
+          const statusText =
+            data.statusText ||
+            data.status ||
+            '';
+
+          const lowNeed =
+            String(
+              statusText
+            ).includes(
+              'Низька'
+            ) ||
+            (
+              Number.isFinite(
+                recommendationValue
+              ) &&
+              recommendationValue <= 10
+            );
+
+          const mappedProducts =
+            orderedProducts.map(
+              function (product) {
+                return {
+                  name:
+                    product.name ||
+                    product.shortName ||
+                    'Bactogran',
+
+                  rate:
+                    Number(
+                      product.rate
+                    ),
+
+                  rateLabel:
+                    product.rateLabel ||
+                    (
+                      product.rate !== undefined
+                        ? `${formatNumber(product.rate)} кг/га`
+                        : ''
+                    ),
+
+                  totalLabel:
+                    product.totalLabel ||
+                    (
+                      product.totalTons !== undefined
+                        ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
+                        : ''
+                    )
+                };
+              }
+            );
+
+          const displayProducts =
+            mappedProducts.length
+              ? mappedProducts
+              : [
+                  {
+                    name:
+                      lowNeed
+                        ? 'Підтримувальна рекомендація Bactogran'
+                        : 'Індивідуальна рекомендація Bactogran',
+
+                    rateLabel:
+                      data.recommendationLabel
+                        ? `Розрахункова потреба: ${data.recommendationLabel} P₂O₅`
+                        : 'Норма визначається за розрахованою потребою P₂O₅',
+
+                    totalLabel:
+                      lowNeed
+                        ? 'За достатнього забезпечення фосфором використовуйте лише помірну підтримувальну норму. Не збільшуйте внесення без аналізу ґрунту та консультації агронома.'
+                        : 'Конкретний продукт Bactogran і його продуктову норму слід підібрати за розрахованою потребою P₂O₅ та підтвердити з агрономом.'
+                  }
+                ];
+
+          const recommendationNotice =
+            lowNeed
+              ? (
+                  'Фосфору в ґрунті достатньо або потреба є низькою. ' +
+                  'Рекомендується помірне підтримувальне внесення Bactogran ' +
+                  'лише в межах мінімальної розрахункової потреби P₂O₅. ' +
+                  'Не перевищуйте цю норму без актуального аналізу ґрунту.'
+                )
+              : (
+                  'Рекомендація Bactogran сформована відповідно до розрахованої ' +
+                  'потреби культури у P₂O₅. Дотримуйтеся розрахованої норми, ' +
+                  'а збільшення внесення погоджуйте з агрономом.'
+                );
+
           const formattedResult = {
             removalLabel:
               data.removalLabel ||
@@ -1138,13 +1204,14 @@ try {
               '—',
 
             status:
-              data.statusText ||
-              data.status ||
-              '',
+              statusText,
 
             comment:
               data.comment ||
               '',
+
+            recommendationNotice:
+              recommendationNotice,
 
             explanation: {
               title:
@@ -1157,48 +1224,14 @@ try {
                 `можна обрати один із наведених продуктів Bactogran:`,
 
               fallback:
-                'Потрібна консультація агронома Bactogran для уточнення системи живлення.',
+                'Для цього розрахунку сформована підтримувальна рекомендація Bactogran.',
 
               soilActive:
                 'Біокомплекс Soil Active додатково мобілізує 10 кг/га доступного фосфору та попереджає його блокування на кислих і лужних ґрунтах. Це сприяє розвитку кореневої системи, ефективнішому використанню елементів живлення та стабільному формуванню запланованого врожаю.'
             },
 
             products:
-              orderedProducts.map(
-                function (
-                  product
-                ) {
-                  return {
-                    name:
-                      product.name ||
-                      product.shortName ||
-                      'Bactogran',
-
-                    rate:
-                      Number(
-                        product.rate
-                      ),
-
-                    rateLabel:
-                      product.rateLabel ||
-                      (
-                        product.rate !==
-                          undefined
-                          ? `${formatNumber(product.rate)} кг/га`
-                          : ''
-                      ),
-
-                    totalLabel:
-                      product.totalLabel ||
-                      (
-                        product.totalTons !==
-                          undefined
-                          ? `${formatNumber(product.totalTons)} т на площу ${formatNumber(input.area)} га`
-                          : ''
-                      )
-                  };
-                }
-              )
+              displayProducts
           };
 
           showResult(
@@ -1206,8 +1239,532 @@ try {
           );
 
         } catch (error) {
-          showServerError(
-            error
+          if (
+            error &&
+            error.code ===
+              'USER_STOPPED'
+          ) {
+            showServerError({
+              message:
+                'Повторні спроби зупинено. Дані форми збережено — розрахунок можна запустити знову.'
+            });
+          } else {
+            showServerError(
+              error
+            );
+          }
+
+        } finally {
+          isSubmitting = false;
+          stopRequested = false;
+          activeRequestController = null;
+          activeRequestId = null;
+
+          setLoading(
+            false
+          );
+        }
+      }
+    );
+
+
+    async function fetchCalculationUntilSuccess(
+      input
+    ) {
+      let attempt = 0;
+
+      while (!stopRequested) {
+        attempt += 1;
+
+        await waitForOnline();
+
+        if (stopRequested) {
+          throw createStoppedError();
+        }
+
+        let timeoutReached =
+          false;
+
+        const controller =
+          new AbortController();
+
+        activeRequestController =
+          controller;
+
+        const timeoutId =
+          window.setTimeout(
+            function () {
+              timeoutReached =
+                true;
+
+              controller.abort();
+            },
+            45000
+          );
+
+        try {
+          showRetryStatus(
+            attempt === 1
+              ? 'Виконуємо розрахунок…'
+              : `Повторна спроба №${attempt}. Дані форми збережено.`
+          );
+
+          const response =
+            await fetch(
+              API_URL,
+              {
+                method:
+                  'POST',
+
+                headers: {
+                  'Content-Type':
+                    'application/json',
+
+                  'X-Request-Id':
+                    input.requestId
+                },
+
+                body:
+                  JSON.stringify(
+                    input
+                  ),
+
+                cache:
+                  'no-store',
+
+                credentials:
+                  'same-origin',
+
+                signal:
+                  controller.signal
+              }
+            );
+
+          const responseText =
+            await response.text();
+
+          let result;
+
+          try {
+            result =
+              JSON.parse(
+                responseText
+              );
+          } catch (parseError) {
+            const invalidResponseError =
+              new Error(
+                'Сервер повернув некоректну відповідь.'
+              );
+
+            invalidResponseError.retryable =
+              true;
+
+            invalidResponseError.code =
+              'NON_JSON_RESPONSE';
+
+            throw invalidResponseError;
+          }
+
+          if (
+            result &&
+            result.status ===
+              'active'
+          ) {
+            const wrongRouteError =
+              new Error(
+                'Сервер тимчасово відкрив перевірочний маршрут замість розрахунку.'
+              );
+
+            wrongRouteError.retryable =
+              true;
+
+            wrongRouteError.code =
+              'GET_INSTEAD_OF_POST';
+
+            throw wrongRouteError;
+          }
+
+          if (
+            isRetryableHttpStatus(
+              response.status
+            ) ||
+            (
+              result &&
+              result.retryable ===
+                true
+            )
+          ) {
+            const retryableError =
+              new Error(
+                result &&
+                result.message
+                  ? result.message
+                  : 'Тимчасова помилка сервера.'
+              );
+
+            retryableError.retryable =
+              true;
+
+            retryableError.code =
+              result &&
+              result.code
+                ? result.code
+                : `HTTP_${response.status}`;
+
+            throw retryableError;
+          }
+
+          if (
+            !response.ok ||
+            !result ||
+            result.status !==
+              'success'
+          ) {
+            throw new Error(
+              result &&
+              result.message
+                ? result.message
+                : 'Не вдалося виконати розрахунок.'
+            );
+          }
+
+          return result;
+
+        } catch (error) {
+          if (stopRequested) {
+            throw createStoppedError();
+          }
+
+          const retryable =
+            timeoutReached ||
+            isRetryableFetchError(
+              error
+            );
+
+          if (!retryable) {
+            throw normalizeFetchError(
+              error
+            );
+          }
+
+          const delay =
+            getRetryDelay(
+              attempt
+            );
+
+          showRetryStatus(
+            timeoutReached
+              ? (
+                  `Сервер відповідає довше звичайного. ` +
+                  `Наступна спроба через ${Math.ceil(delay / 1000)} с.`
+                )
+              : (
+                  `З’єднання тимчасово перервано. ` +
+                  `Наступна спроба через ${Math.ceil(delay / 1000)} с.`
+                )
+          );
+
+          await waitWithStop(
+            delay
+          );
+
+        } finally {
+          window.clearTimeout(
+            timeoutId
+          );
+
+          if (
+            activeRequestController ===
+            controller
+          ) {
+            activeRequestController =
+              null;
+          }
+        }
+      }
+
+      throw createStoppedError();
+    }
+
+
+    function createRequestId() {
+      if (
+        window.crypto &&
+        typeof window.crypto.randomUUID ===
+          'function'
+      ) {
+        return (
+          'bcg-' +
+          window.crypto.randomUUID()
+        );
+      }
+
+      return (
+        'bcg-' +
+        Date.now().toString(36) +
+        '-' +
+        Math.random()
+          .toString(36)
+          .slice(2) +
+        '-' +
+        Math.random()
+          .toString(36)
+          .slice(2)
+      );
+    }
+
+
+    function createStoppedError() {
+      const error =
+        new Error(
+          'Повторні спроби зупинено.'
+        );
+
+      error.code =
+        'USER_STOPPED';
+
+      return error;
+    }
+
+
+    function isRetryableHttpStatus(
+      status
+    ) {
+      return [
+        408,
+        425,
+        429,
+        500,
+        502,
+        503,
+        504
+      ].includes(
+        Number(status)
+      );
+    }
+
+
+    function isRetryableFetchError(
+      error
+    ) {
+      if (!error) {
+        return true;
+      }
+
+      if (
+        error.retryable ===
+          true
+      ) {
+        return true;
+      }
+
+      if (
+        error.name ===
+          'AbortError'
+      ) {
+        return true;
+      }
+
+      const message =
+        String(
+          error.message ||
+          error
+        )
+          .toLowerCase();
+
+      return (
+        message.includes(
+          'failed to fetch'
+        ) ||
+        message.includes(
+          'networkerror'
+        ) ||
+        message.includes(
+          'network error'
+        ) ||
+        message.includes(
+          'load failed'
+        ) ||
+        message.includes(
+          'fetch'
+        )
+      );
+    }
+
+
+    function normalizeFetchError(
+      error
+    ) {
+      const normalized =
+        new Error(
+          error &&
+          error.message
+            ? error.message
+            : 'Не вдалося виконати розрахунок.'
+        );
+
+      normalized.code =
+        error &&
+        error.code
+          ? error.code
+          : 'CALCULATION_ERROR';
+
+      return normalized;
+    }
+
+
+    function getRetryDelay(
+      attempt
+    ) {
+      const baseDelay =
+        Math.min(
+          15000,
+          1200 *
+          Math.pow(
+            1.7,
+            Math.max(
+              0,
+              attempt - 1
+            )
+          )
+        );
+
+      const jitter =
+        Math.floor(
+          Math.random() *
+          700
+        );
+
+      return (
+        Math.round(
+          baseDelay
+        ) +
+        jitter
+      );
+    }
+
+
+    async function waitForOnline() {
+      while (
+        navigator.onLine ===
+          false &&
+        !stopRequested
+      ) {
+        showRetryStatus(
+          'Немає з’єднання з інтернетом. Очікуємо відновлення Wi‑Fi або мобільної мережі…'
+        );
+
+        await waitWithStop(
+          1000
+        );
+      }
+    }
+
+
+    function waitWithStop(
+      milliseconds
+    ) {
+      return new Promise(
+        function (resolve) {
+          const startedAt =
+            Date.now();
+
+          function check() {
+            if (
+              stopRequested ||
+              Date.now() -
+                startedAt >=
+                milliseconds
+            ) {
+              resolve();
+              return;
+            }
+
+            window.setTimeout(
+              check,
+              250
+            );
+          }
+
+          check();
+        }
+      );
+    }
+
+
+    function showRetryStatus(
+      message
+    ) {
+      errorBox.classList.add(
+        'retrying'
+      );
+
+      errorBox.textContent =
+        message;
+
+      errorBox.hidden =
+        false;
+    }
+
+
+    function stopActiveRetries() {
+      if (!isSubmitting) {
+        return;
+      }
+
+      stopRequested =
+        true;
+
+      if (
+        activeRequestController
+      ) {
+        activeRequestController.abort();
+      }
+    }
+
+
+    function restoreMobileControls() {
+      if (isSubmitting) {
+        setLoading(
+          true,
+          'Розрахунок…'
+        );
+      } else {
+        setLoading(
+          false
+        );
+      }
+    }
+
+
+    stopButton.addEventListener(
+      'click',
+      stopActiveRetries
+    );
+
+
+    window.addEventListener(
+      'pageshow',
+      restoreMobileControls
+    );
+
+
+    document.addEventListener(
+      'visibilitychange',
+      function () {
+        if (!document.hidden) {
+          restoreMobileControls();
+        }
+      }
+    );
+
+
+    window.addEventListener(
+      'online',
+      function () {
+        if (isSubmitting) {
+          showRetryStatus(
+            'Інтернет-з’єднання відновлено. Продовжуємо розрахунок…'
           );
         }
       }
@@ -1317,6 +1874,10 @@ try {
         )
         .textContent =
           result.comment;
+
+      bactogranNotice.textContent =
+        result.recommendationNotice ||
+        '';
 
       renderProducts(
         result.products,
@@ -1481,6 +2042,9 @@ try {
       results.hidden =
         true;
 
+      bactogranNotice.textContent =
+        '';
+
       hideError();
 
       area.focus();
@@ -1497,15 +2061,26 @@ try {
       clearButton.disabled =
         loading;
 
+      stopButton.hidden =
+        !loading;
+
+      stopButton.disabled =
+        false;
+
       calculateButton.textContent =
         loading
-          ? text
+          ? (
+              text ||
+              'Розрахунок…'
+            )
           : 'Розрахувати';
     }
 
 
     function showServerError(error) {
-      setLoading(false);
+      errorBox.classList.remove(
+        'retrying'
+      );
 
       errorBox.textContent =
         error &&
@@ -1524,6 +2099,10 @@ try {
 
 
     function hideError() {
+      errorBox.classList.remove(
+        'retrying'
+      );
+
       errorBox.hidden =
         true;
 
