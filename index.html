@@ -222,13 +222,27 @@
     }
 
     .stop-button {
-      border: 1px solid #86c98b;
-      background: var(--green-soft);
-      color: var(--green);
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: var(--white);
+      -webkit-text-fill-color: var(--white);
+      -webkit-appearance: none;
+      appearance: none;
     }
 
-    .stop-button:hover {
-      background: #dff0e1;
+    .stop-button:hover,
+    .stop-button:focus-visible {
+      border-color: #246b28;
+      background: #246b28;
+      color: var(--white);
+      -webkit-text-fill-color: var(--white);
+    }
+
+    .stop-button:active {
+      border-color: #1f5d23;
+      background: #1f5d23;
+      color: var(--white);
+      -webkit-text-fill-color: var(--white);
     }
 
     .error.retrying {
@@ -437,6 +451,20 @@
         min-height: 56px;
         font-size: 16px;
       }
+
+      /*
+       * Фіксація стилю для Chrome/Android і Safari/iPhone,
+       * щоб системне оформлення браузера не змінювало зелений колір.
+       */
+      .stop-button {
+        border-color: var(--green);
+        background: var(--green);
+        color: var(--white);
+        -webkit-text-fill-color: var(--white);
+        -webkit-appearance: none;
+        appearance: none;
+        touch-action: manipulation;
+      }
     }
   </style>
 </head>
@@ -579,7 +607,7 @@
             type="button"
             hidden
           >
-            Зупинити розрахунок
+            Зупинити обрахунок
           </button>
 
           <button
